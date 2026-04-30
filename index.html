@@ -197,7 +197,7 @@
       <div class="chart-card">
         <div class="chart-title">Ivy League Acceptance Rates, Class of 2030</div>
         <div class="chart-container" id="chart1"></div>
-        <div class="chart-source"><strong>Source:</strong> Institutional announcements, Brown Daily Herald, Mar 2026</div>
+        <div class="chart-source"><strong>Source:</strong> Oriel Admissions, Ivy Day 2026 Results, Mar 2026</div>
         <a class="chart-link" href="https://orieladmissions.com/ivy-day-2026-results-ivy-league-acceptance-rates-class-of-2030/" target="_blank" rel="noopener">Read full analysis &#8599;</a>
       </div>
 
@@ -205,7 +205,7 @@
       <div class="chart-card">
         <div class="chart-title">F-1 Visa Refusal Rate Trend</div>
         <div class="chart-container" id="chart2"></div>
-        <div class="chart-source"><strong>Source:</strong> Inside Higher Ed / NAFSA, Apr 2026</div>
+        <div class="chart-source"><strong>Source:</strong> Inside Higher Ed / Shorelight, Apr 2026</div>
         <a class="chart-link" href="https://www.insidehighered.com/news/global/international-students-us/2026/04/11/f-1-student-visa-refusals-surged-2025" target="_blank" rel="noopener">Read full article &#8599;</a>
       </div>
 
@@ -213,16 +213,16 @@
       <div class="chart-card">
         <div class="chart-title">No-Tuition Income Thresholds at Top Ivies</div>
         <div class="chart-container" id="chart3"></div>
-        <div class="chart-source"><strong>Source:</strong> Yale University, Fortune, Jan 2026</div>
-        <a class="chart-link" href="https://fortune.com/2026/04/15/yale-committee-report-problems-higher-education-ivy-league-schools/" target="_blank" rel="noopener">Read full article &#8599;</a>
+        <div class="chart-source"><strong>Source:</strong> Oriel Admissions, Net Price Comparison, Apr 2026</div>
+        <a class="chart-link" href="https://orieladmissions.com/net-price-comparison-calculator/" target="_blank" rel="noopener">View full comparison &#8599;</a>
       </div>
 
       <!-- Chart 4: Application Volume -->
       <div class="chart-card">
         <div class="chart-title">Common App Volume: Year-Over-Year Change</div>
         <div class="chart-container" id="chart4"></div>
-        <div class="chart-source"><strong>Source:</strong> Common App Reports &amp; Insights, Mar 2026</div>
-        <a class="chart-link" href="https://www.commonapp.org/about/reports-and-insights/" target="_blank" rel="noopener">View Common App data &#8599;</a>
+        <div class="chart-source"><strong>Source:</strong> Common App, March 1 Deadline Update, Mar 2026</div>
+        <a class="chart-link" href="https://www.commonapp.org/reports/march-2026-deadline-update/" target="_blank" rel="noopener">View full report &#8599;</a>
       </div>
 
       <div class="chart-data-disclaimer">All chart data sourced from linked articles and institutional reports. Data points reflect figures as reported by original sources. Verify critical data before use in institutional decision-making.</div>
@@ -448,16 +448,16 @@ function renderCharts() {
 
   // Chart 3: Financial aid thresholds
   const aid = [
-    { school: "Yale", threshold: 200, color: "#1A5E73" },
-    { school: "Princeton", threshold: 150, color: "#2D7D9A" },
-    { school: "Stanford", threshold: 150, color: "#3A8FB0" },
-    { school: "Harvard", threshold: 100, color: "#4CA1C1" },
-    { school: "Brown", threshold: 60, color: "#C45B28" },
+    { school: "Princeton", threshold: 250, color: "#1A5E73" },
+    { school: "Harvard", threshold: 200, color: "#2D7D9A" },
+    { school: "Yale", threshold: 200, color: "#3A8FB0" },
+    { school: "Stanford", threshold: 150, color: "#4CA1C1" },
+    { school: "Brown", threshold: 125, color: "#C45B28" },
   ];
   document.getElementById("chart3").innerHTML = aid.map(a =>
     '<div class="chart-bar-group"><div class="chart-bar-label">' + a.school + '</div>' +
-    '<div class="chart-bar-track"><div class="chart-bar-fill" style="width:' + (a.threshold / 220 * 100) + '%;background:' + a.color + '">$' + a.threshold + 'K</div></div></div>'
-  ).join("") + '<div style="font-size:9px;color:#AAB4BA;margin-top:6px">Family income below which tuition is eliminated. Brown highlighted.</div>';
+    '<div class="chart-bar-track"><div class="chart-bar-fill" style="width:' + (a.threshold / 270 * 100) + '%;background:' + a.color + '">$' + a.threshold + 'K</div></div></div>'
+  ).join("") + '<div style="font-size:9px;color:#AAB4BA;margin-top:6px">Family income below which tuition is eliminated (typical assets). Brown highlighted.</div>';
 
   // Chart 4: Common App volume
   const vol = [
