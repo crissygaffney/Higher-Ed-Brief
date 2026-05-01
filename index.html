@@ -44,7 +44,7 @@
   .filter-btn.active { background: #0B1D26; color: #F5F3EF; border-color: #0B1D26; }
   .filter-count { font-size: 10px; margin-left: 4px; opacity: 0.6; }
 
-  .main-layout { display: grid; grid-template-columns: 1fr 320px; gap: 0; max-width: 1240px; }
+  .main-layout { display: grid; grid-template-columns: 1fr 320px; gap: 0; }
   .stories-column { padding: 24px 32px 64px 40px; min-width: 0; }
   .sidebar { border-left: 1px solid #E8E6E1; background: #fff; }
   .sidebar-sticky { position: sticky; top: 52px; padding: 20px 20px 32px; max-height: calc(100vh - 52px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #D5D3CE transparent; }
@@ -81,6 +81,13 @@
   .chart-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #5C6B73; }
   .chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
   .chart-data-disclaimer { font-size: 9px; color: #AAB4BA; margin-top: 10px; padding-top: 8px; border-top: 1px solid #EEECE7; line-height: 1.4; }
+  .news-access-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #EEECE7; }
+  .news-access-item:last-child { border-bottom: none; }
+  .news-access-name { font-size: 12px; font-weight: 500; color: #0B1D26; }
+  .news-access-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; background: #EDF7FB; color: #2D7D9A; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
+  .news-access-badge:hover { background: #2D7D9A; color: #fff; }
+  .news-access-badge.pass { background: #FFF8ED; color: #C97215; }
+  .news-access-badge.pass:hover { background: #C97215; color: #fff; }
 
   .section-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #8DA3AD; margin-bottom: 16px; }
   .day-group-header { font-family: 'Instrument Serif', serif; font-size: 18px; font-weight: 400; color: #0B1D26; padding: 20px 0 10px; border-bottom: 2px solid #E8E6E1; margin-bottom: 14px; display: flex; align-items: baseline; gap: 10px; }
@@ -122,7 +129,7 @@
   .comp-panel-label::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #C97215; }
   .comp-panel p { font-size: 13px; line-height: 1.65; color: #6B5B3E; }
 
-  .footer { text-align: center; padding: 24px 40px; border-top: 1px solid #E8E6E1; max-width: 1240px; }
+  .footer { text-align: center; padding: 24px 40px; border-top: 1px solid #E8E6E1; }
   .footer p { font-size: 12px; color: #AAB4BA; font-style: italic; line-height: 1.5; }
   .empty-state { text-align: center; padding: 48px 24px; color: #8DA3AD; font-size: 14px; line-height: 1.6; }
 
@@ -226,6 +233,15 @@
       </div>
 
       <div class="chart-data-disclaimer">All chart data sourced from linked articles and institutional reports. Data points reflect figures as reported by original sources. Verify critical data before use in institutional decision-making.</div>
+
+      <!-- News Access -->
+      <div class="sidebar-card" style="margin-top:16px">
+        <div class="sidebar-card-header sidebar-card-header-muted">News Access for Brown Employees</div>
+        <div class="news-access-list" id="newsAccessList"></div>
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid #EEECE7">
+          <a class="chart-link" href="https://libguides.brown.edu/newspapers" target="_blank" rel="noopener">All Brown academic passes &#8599;</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -539,7 +555,22 @@ function renderStories() {
   } else container.innerHTML = filtered.map((s, i) => buildCard(s, i)).join("");
 }
 function toggleStory(id) { expandedId = expandedId === id ? null : id; renderStories(); }
-function renderAll() { renderDates(); renderCharts(); renderSchoolTags(); renderFilters(); renderStories(); }
+function renderNewsAccess() {
+  const sources = [
+    { name: "Inside Higher Ed", url: "https://www.insidehighered.com", type: "read" },
+    { name: "Chronicle of Higher Ed", url: "https://www.chronicle.com", type: "read" },
+    { name: "New York Times", url: "https://library.brown.edu/eresources/nytimes.php", type: "pass" },
+    { name: "Wall Street Journal", url: "https://library.brown.edu/eresources/wsjournal.php", type: "pass" },
+    { name: "Financial Times", url: "https://www.ft.com", type: "read" },
+    { name: "The Atlantic", url: "https://theatlantic.com/brownuniversity-login/", type: "pass" },
+  ];
+  document.getElementById("newsAccessList").innerHTML = sources.map(s =>
+    '<div class="news-access-item"><span class="news-access-name">' + s.name + '</span>' +
+    '<a class="news-access-badge' + (s.type === 'pass' ? ' pass' : '') + '" href="' + s.url + '" target="_blank" rel="noopener">' +
+    (s.type === 'pass' ? 'Activate Pass' : 'Read') + '</a></div>'
+  ).join("");
+}
+function renderAll() { renderDates(); renderCharts(); renderNewsAccess(); renderSchoolTags(); renderFilters(); renderStories(); }
 renderAll();
 </script>
 </body>
