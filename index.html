@@ -44,12 +44,16 @@
   .filter-btn.active { background: #0B1D26; color: #F5F3EF; border-color: #0B1D26; }
   .filter-count { font-size: 10px; margin-left: 4px; opacity: 0.6; }
 
-  .main-layout { display: grid; grid-template-columns: 1fr 320px; gap: 0; }
+  .main-layout { display: grid; grid-template-columns: 1fr 320px 220px; gap: 0; }
   .stories-column { padding: 24px 32px 64px 40px; min-width: 0; }
   .sidebar { border-left: 1px solid #E8E6E1; background: #fff; }
   .sidebar-sticky { position: sticky; top: 52px; padding: 20px 20px 32px; max-height: calc(100vh - 52px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #D5D3CE transparent; }
   .sidebar-sticky::-webkit-scrollbar { width: 4px; }
   .sidebar-sticky::-webkit-scrollbar-thumb { background: #D5D3CE; border-radius: 4px; }
+  .news-col { border-left: 1px solid #E8E6E1; background: #fff; }
+  .news-col-sticky { position: sticky; top: 52px; padding: 18px 16px 32px; max-height: calc(100vh - 52px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #D5D3CE transparent; }
+  .news-col-sticky::-webkit-scrollbar { width: 4px; }
+  .news-col-sticky::-webkit-scrollbar-thumb { background: #D5D3CE; border-radius: 4px; }
   .sidebar-card { background: #FAFAF8; border: 1px solid #E8E6E1; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
   .sidebar-card-header { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2D7D9A; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .sidebar-card-header-muted { color: #8DA3AD; }
@@ -133,6 +137,11 @@
   .footer p { font-size: 12px; color: #AAB4BA; font-style: italic; line-height: 1.5; }
   .empty-state { text-align: center; padding: 48px 24px; color: #8DA3AD; font-size: 14px; line-height: 1.6; }
 
+  @media (max-width: 1100px) {
+    .main-layout { grid-template-columns: 1fr 300px; }
+    .news-col { grid-column: 1 / -1; border-left: none; border-top: 1px solid #E8E6E1; }
+    .news-col-sticky { position: static; max-height: none; padding: 16px 40px; }
+  }
   @media (max-width: 960px) {
     .main-layout { grid-template-columns: 1fr; }
     .sidebar { border-left: none; border-top: 1px solid #E8E6E1; }
@@ -154,6 +163,7 @@
     .school-tags { gap: 4px; }
     .school-tag { font-size: 9px; padding: 2px 8px; }
     .sidebar-sticky { grid-template-columns: 1fr; padding: 16px 18px; }
+    .news-col-sticky { padding: 16px 18px; }
   }
 </style>
 </head>
@@ -233,9 +243,11 @@
       </div>
 
       <div class="chart-data-disclaimer">All chart data sourced from linked articles and institutional reports. Data points reflect figures as reported by original sources. Verify critical data before use in institutional decision-making.</div>
-
-      <!-- News Access -->
-      <div class="sidebar-card" style="margin-top:16px">
+    </div>
+  </div>
+  <div class="news-col">
+    <div class="news-col-sticky">
+      <div class="sidebar-card">
         <div class="sidebar-card-header sidebar-card-header-muted">News Access for Brown Employees</div>
         <div class="news-access-list" id="newsAccessList"></div>
         <div style="margin-top:10px;padding-top:8px;border-top:1px solid #EEECE7">
