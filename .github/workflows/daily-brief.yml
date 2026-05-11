@@ -13,18 +13,30 @@ jobs:
       - uses: actions/checkout@v4
       - name: Generate dashboard
         run: |
-          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+          echo "Testing API key exists: ${{ secrets.ANTHROPIC_API_KEY != '' }}"
+          RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
             -d @generate-prompt.json)
-          echo "$RESPONSE" | python3 -c "
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response preview: $(echo "$BODY" | head -c 500)"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "API call failed with status $HTTP_CODE"
+            exit 1
+          fi
+          echo "$BODY" | python3 -c "
           import sys, json
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
           start = text.find('<!DOCTYPE') if '<!DOCTYPE' in text else text.find('<html')
-          if start == -1: start = 0
-          with open('generated.html','w') as f: f.write(text[start:])"
+          if start == -1:
+            print('ERROR: No HTML found in response')
+            sys.exit(1)
+          with open('generated.html','w') as f: f.write(text[start:])
+          print(f'Generated HTML: {len(text[start:])} characters')"
       - name: Verify dashboard
         run: |
           python3 -c "
