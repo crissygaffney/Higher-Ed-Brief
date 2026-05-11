@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Higher Ed Intelligence Brief - Brown University</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'DM Sans', sans-serif; background: #FAFAF8; color: #1a1a1a; -webkit-font-smoothing: antialiased; }
+
+  .header { background: #0B1D26; color: #F5F3EF; padding: 40px 40px 32px; position: relative; overflow: hidden; }
+  .header::after { content: ''; position: absolute; top: 0; right: 0; width: 50%; height: 100%; background: radial-gradient(ellipse at 80% 40%, rgba(44,125,154,0.15) 0%, transparent 70%); pointer-events: none; }
+  .header-top { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; position: relative; z-index: 1; }
+  .header h1 { font-family: 'Instrument Serif', serif; font-size: 30px; font-weight: 400; letter-spacing: -0.5px; line-height: 1.2; }
+  .header h1 em { font-style: italic; color: #7DBDCE; }
+  .header-controls { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
+  .edition { font-size: 12px; letter-spacing: 1.8px; text-transform: uppercase; color: #8DA3AD; font-weight: 500; }
+  .view-toggle { display: flex; border-radius: 6px; overflow: hidden; border: 1px solid rgba(125,189,206,0.3); }
+  .view-toggle-btn { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; padding: 5px 14px; border: none; background: transparent; color: #7DBDCE; cursor: pointer; transition: all 0.2s; letter-spacing: 0.3px; }
+  .view-toggle-btn:first-child { border-right: 1px solid rgba(125,189,206,0.3); }
+  .view-toggle-btn.active { background: #7DBDCE; color: #0B1D26; font-weight: 600; }
+  .view-toggle-btn:hover:not(.active) { background: rgba(125,189,206,0.1); }
+  .subtitle { font-size: 13.5px; color: #8DA3AD; margin-top: 12px; position: relative; z-index: 1; max-width: 700px; line-height: 1.55; }
+  .school-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; position: relative; z-index: 1; }
+  .school-tag { font-size: 10px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; padding: 3px 11px; border-radius: 100px; border: 1px solid rgba(125,189,206,0.25); color: #7DBDCE; background: transparent; cursor: pointer; transition: all 0.2s; font-family: 'DM Sans', sans-serif; }
+  .school-tag:hover { background: rgba(125,189,206,0.12); border-color: rgba(125,189,206,0.5); }
+  .school-tag.active { background: #7DBDCE; color: #0B1D26; border-color: #7DBDCE; font-weight: 600; }
+  .school-tag-divider { width: 1px; height: 18px; background: rgba(125,189,206,0.2); align-self: center; margin: 0 4px; }
+  .school-filter-hint { font-size: 11px; color: #5C8090; margin-top: 10px; position: relative; z-index: 1; display: none; align-items: center; gap: 8px; }
+  .school-filter-hint.visible { display: flex; }
+  .clear-school-btn { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; color: #7DBDCE; background: rgba(125,189,206,0.12); border: 1px solid rgba(125,189,206,0.3); border-radius: 100px; padding: 2px 10px; cursor: pointer; transition: all 0.2s; }
+  .clear-school-btn:hover { background: rgba(125,189,206,0.2); }
+
+  .stats-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; background: #fff; border-bottom: 1px solid #E8E6E1; }
+  .stat-box { text-align: center; padding: 20px 12px; border-right: 1px solid #E8E6E1; }
+  .stat-box:last-child { border-right: none; }
+  .stat-number { font-family: 'Instrument Serif', serif; font-size: 28px; color: #0B1D26; line-height: 1; }
+  .stat-label { font-size: 11px; color: #8DA3AD; margin-top: 6px; line-height: 1.35; font-weight: 500; }
+
+  .filter-bar { display: flex; gap: 6px; padding: 16px 40px; background: #fff; border-bottom: 1px solid #E8E6E1; overflow-x: auto; -webkit-overflow-scrolling: touch; position: sticky; top: 0; z-index: 10; }
+  .filter-btn { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; padding: 7px 16px; border-radius: 100px; border: 1px solid #D5D3CE; background: transparent; color: #5C6B73; cursor: pointer; white-space: nowrap; transition: all 0.2s ease; }
+  .filter-btn:hover { border-color: #0B1D26; color: #0B1D26; }
+  .filter-btn.active { background: #0B1D26; color: #F5F3EF; border-color: #0B1D26; }
+  .filter-count { font-size: 10px; margin-left: 4px; opacity: 0.6; }
+
+  .main-layout { display: grid; grid-template-columns: 1fr 320px 220px; gap: 0; }
+  .stories-column { padding: 24px 32px 64px 40px; min-width: 0; }
+  .sidebar { border-left: 1px solid #E8E6E1; background: #fff; }
+  .sidebar-sticky { position: sticky; top: 52px; padding: 20px 20px 32px; max-height: calc(100vh - 52px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #D5D3CE transparent; }
+  .sidebar-sticky::-webkit-scrollbar { width: 4px; }
+  .sidebar-sticky::-webkit-scrollbar-thumb { background: #D5D3CE; border-radius: 4px; }
+  .news-col { border-left: 1px solid #E8E6E1; background: #fff; }
+  .news-col-sticky { position: sticky; top: 52px; padding: 18px 16px 32px; max-height: calc(100vh - 52px); overflow-y: auto; scrollbar-width: thin; scrollbar-color: #D5D3CE transparent; }
+  .news-col-sticky::-webkit-scrollbar { width: 4px; }
+  .news-col-sticky::-webkit-scrollbar-thumb { background: #D5D3CE; border-radius: 4px; }
+  .sidebar-card { background: #FAFAF8; border: 1px solid #E8E6E1; border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  .sidebar-card-header { font-size: 11px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2D7D9A; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .sidebar-card-header-muted { color: #8DA3AD; }
+  .sidebar-dot { width: 7px; height: 7px; border-radius: 50%; background: #2D7D9A; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  .date-item { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-bottom: 1px solid #EEECE7; }
+  .date-item:last-child { border-bottom: none; }
+  .date-item-date { font-size: 11px; font-weight: 600; color: #2D7D9A; min-width: 46px; padding-top: 1px; }
+  .date-item-urgent .date-item-date { color: #D64045; }
+  .date-item-text { font-size: 12px; color: #4A5568; line-height: 1.45; }
+  .date-item-dot { width: 5px; height: 5px; border-radius: 50%; background: #C5C3BE; flex-shrink: 0; margin-top: 5px; }
+  .date-item-urgent .date-item-dot { background: #D64045; }
+
+  /* ── Sidebar Charts ── */
+  .chart-card { background: #FAFAF8; border: 1px solid #E8E6E1; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .chart-title { font-size: 12px; font-weight: 600; color: #0B1D26; margin-bottom: 10px; line-height: 1.35; }
+  .chart-container { margin-bottom: 10px; }
+  .chart-bar-group { margin-bottom: 8px; }
+  .chart-bar-label { font-size: 10px; color: #5C6B73; margin-bottom: 3px; font-weight: 500; }
+  .chart-bar-track { background: #EEECE7; border-radius: 3px; height: 16px; position: relative; overflow: hidden; }
+  .chart-bar-fill { height: 100%; border-radius: 3px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; font-size: 9px; font-weight: 600; color: #fff; transition: width 0.6s ease; }
+  .chart-source { font-size: 10px; color: #8DA3AD; font-style: italic; line-height: 1.4; margin-bottom: 6px; }
+  .chart-source strong { font-style: normal; font-weight: 600; }
+  .chart-link { font-size: 11px; font-weight: 500; color: #2D7D9A; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: color 0.2s; }
+  .chart-link:hover { color: #1A5E73; text-decoration: underline; }
+  .mini-line-chart { width: 100%; height: 80px; }
+  .chart-legend { display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+  .chart-legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #5C6B73; }
+  .chart-legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .chart-data-disclaimer { font-size: 9px; color: #AAB4BA; margin-top: 10px; padding-top: 8px; border-top: 1px solid #EEECE7; line-height: 1.4; }
+  .news-access-item { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid #EEECE7; }
+  .news-access-item:last-child { border-bottom: none; }
+  .news-access-name { font-size: 12px; font-weight: 500; color: #0B1D26; }
+  .news-access-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 7px; border-radius: 3px; background: #EDF7FB; color: #2D7D9A; text-decoration: none; transition: all 0.2s; white-space: nowrap; }
+  .news-access-badge:hover { background: #2D7D9A; color: #fff; }
+  .news-access-badge.pass { background: #FFF8ED; color: #C97215; }
+  .news-access-badge.pass:hover { background: #C97215; color: #fff; }
+
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #8DA3AD; margin-bottom: 16px; }
+  .day-group-header { font-family: 'Instrument Serif', serif; font-size: 18px; font-weight: 400; color: #0B1D26; padding: 20px 0 10px; border-bottom: 2px solid #E8E6E1; margin-bottom: 14px; display: flex; align-items: baseline; gap: 10px; }
+  .day-group-header:first-child { padding-top: 0; }
+  .day-group-count { font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 500; color: #8DA3AD; }
+
+  .story-card { background: #fff; border: 1px solid #E8E6E1; border-radius: 10px; margin-bottom: 14px; overflow: hidden; transition: box-shadow 0.25s ease, border-color 0.25s ease; animation: cardIn 0.35s ease both; }
+  .story-card:hover { border-color: #C5C3BE; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+  @keyframes cardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .story-main { padding: 22px 26px; cursor: pointer; display: flex; gap: 18px; }
+  .story-left { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 105px; }
+  .urgency-badge { font-size: 10px; font-weight: 600; letter-spacing: 0.8px; text-transform: uppercase; padding: 3px 10px; border-radius: 4px; white-space: nowrap; }
+  .urgency-BREAKING { color: #D64045; background: #FEF0F0; }
+  .urgency-HIGH { color: #C97215; background: #FFF8ED; }
+  .urgency-WATCH { color: #2D7D9A; background: #EDF7FB; }
+  .urgency-INFO { color: #5C6B73; background: #F3F5F6; }
+  .story-date { font-size: 12px; color: #8DA3AD; white-space: nowrap; }
+  .story-body { flex: 1; min-width: 0; }
+  .story-headline { font-family: 'Instrument Serif', serif; font-size: 20px; font-weight: 400; line-height: 1.35; color: #1a1a1a; margin-bottom: 8px; }
+  .story-summary { font-size: 13.5px; line-height: 1.7; color: #4A5568; }
+  .story-meta { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .story-source a { font-size: 11px; color: #2D7D9A; font-weight: 600; text-decoration: none; letter-spacing: 0.2px; transition: color 0.2s; }
+  .story-source a:hover { color: #1A5E73; text-decoration: underline; }
+  .school-mention { font-size: 10px; font-weight: 500; padding: 2px 9px; border-radius: 4px; background: #F0F4F7; color: #2D7D9A; transition: all 0.2s; }
+  .school-mention.highlighted { background: #2D7D9A; color: #fff; font-weight: 600; }
+  .expand-indicator { font-size: 12px; color: #2D7D9A; font-weight: 500; margin-top: 8px; display: inline-flex; align-items: center; gap: 5px; transition: color 0.2s; }
+  .expand-indicator:hover { color: #1A5E73; }
+  .expand-arrow { display: inline-block; transition: transform 0.25s ease; font-size: 10px; }
+  .expand-arrow.open { transform: rotate(90deg); }
+
+  .panel-container { border-top: 1px solid #E8E6E1; overflow: hidden; max-height: 0; opacity: 0; transition: max-height 0.35s ease, opacity 0.25s ease; }
+  .panel-container.open { max-height: 600px; opacity: 1; }
+  .ivy-panel { background: #F7F9FA; padding: 18px 26px; }
+  .ivy-panel-label { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #2D7D9A; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .ivy-panel-label::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #2D7D9A; }
+  .ivy-panel p { font-size: 13.5px; line-height: 1.7; color: #4A5568; }
+  .comp-panel { background: #FFFCF5; padding: 16px 26px; border-top: 1px solid #F0E8D8; }
+  .comp-panel-label { font-size: 10px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; color: #C97215; margin-bottom: 8px; display: flex; align-items: center; gap: 7px; }
+  .comp-panel-label::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #C97215; }
+  .comp-panel p { font-size: 13px; line-height: 1.65; color: #6B5B3E; }
+
+  .footer { text-align: center; padding: 24px 40px; border-top: 1px solid #E8E6E1; }
+  .footer p { font-size: 12px; color: #AAB4BA; font-style: italic; line-height: 1.5; }
+  .empty-state { text-align: center; padding: 48px 24px; color: #8DA3AD; font-size: 14px; line-height: 1.6; }
+
+  @media (max-width: 1100px) {
+    .main-layout { grid-template-columns: 1fr 300px; }
+    .news-col { grid-column: 1 / -1; border-left: none; border-top: 1px solid #E8E6E1; }
+    .news-col-sticky { position: static; max-height: none; padding: 16px 40px; }
+  }
+  @media (max-width: 960px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .sidebar { border-left: none; border-top: 1px solid #E8E6E1; }
+    .sidebar-sticky { position: static; max-height: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 20px 40px; }
+    .sidebar-card, .chart-card { margin-bottom: 0; }
+  }
+  @media (max-width: 640px) {
+    .header { padding: 24px 18px 22px; }
+    .header h1 { font-size: 23px; }
+    .header-controls { flex-wrap: wrap; }
+    .stats-strip { grid-template-columns: repeat(2, 1fr); }
+    .stat-box:nth-child(2) { border-right: none; }
+    .stat-box:nth-child(3) { border-right: 1px solid #E8E6E1; }
+    .filter-bar { padding: 12px 18px; }
+    .stories-column { padding: 18px 18px 48px; }
+    .story-main { flex-direction: column; gap: 8px; padding: 16px 18px; }
+    .story-left { flex-direction: row; align-items: center; gap: 10px; min-width: 0; }
+    .ivy-panel, .comp-panel { padding: 14px 18px; }
+    .school-tags { gap: 4px; }
+    .school-tag { font-size: 9px; padding: 2px 8px; }
+    .sidebar-sticky { grid-template-columns: 1fr; padding: 16px 18px; }
+    .news-col-sticky { padding: 16px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>Higher Ed <em>Intelligence</em> Brief<br><span style="font-size:16px;color:#8DA3AD;font-family:'DM Sans',sans-serif;font-weight:500;letter-spacing:0.3px;">Curated for Brown University Office of College Admission</span></h1>
+    <div class="header-controls">
+      <div class="view-toggle">
+        <button class="view-toggle-btn active" id="todayBtn" onclick="setView('today')">Today</button>
+        <button class="view-toggle-btn" id="weekBtn" onclick="setView('week')">Last 7 Days</button>
+      </div>
+      <span class="edition">April 22, 2026</span>
+    </div>
+  </div>
+  <p class="subtitle">Must-read developments for Brown University's senior leadership, admissions teams, and institutional strategists in the Office of College Admission and Student Financial Services. Tap any story for Ivy-specific implications.</p>
+  <div class="school-tags" id="schoolTags"></div>
+  <div class="school-filter-hint" id="schoolFilterHint">
+    <span id="schoolFilterText"></span>
+    <button class="clear-school-btn" onclick="clearSchoolFilter()">Clear filter</button>
+  </div>
+</div>
+
+<div class="stats-strip">
+  <div class="stat-box"><div class="stat-number">~4%</div><div class="stat-label">Avg Ivy Accept Rate<br>Class of 2030</div></div>
+  <div class="stat-box"><div class="stat-number">36%</div><div class="stat-label">Visa Refusal Rate<br>2025</div></div>
+  <div class="stat-box"><div class="stat-number">$2.2B+</div><div class="stat-label">Harvard Frozen<br>Grants (in litigation)</div></div>
+  <div class="stat-box"><div class="stat-number">36%</div><div class="stat-label">Public Confidence<br>in Higher Ed (Gallup)</div></div>
+</div>
+
+<div class="filter-bar" id="filterBar"></div>
+
+<div class="main-layout">
+  <div class="stories-column">
+    <div class="section-label" id="sectionLabel"></div>
+    <div id="storiesContainer"></div>
+  </div>
+  <div class="sidebar">
+    <div class="sidebar-sticky">
+      <!-- Key Dates -->
+      <div class="sidebar-card">
+        <div class="sidebar-card-header"><div class="sidebar-dot"></div>Key Dates &amp; Deadlines</div>
+        <div id="datesScroll"></div>
+      </div>
+
+      <!-- Chart 1: Acceptance Rates -->
+      <div class="chart-card">
+        <div class="chart-title">Ivy League Acceptance Rates, Class of 2030</div>
+        <div class="chart-container" id="chart1"></div>
+        <div class="chart-source"><strong>Source:</strong> Brown Daily Herald, Admissions Data Dashboard, Mar 2026</div>
+        <a class="chart-link" href="https://projects.browndailyherald.com/2026/03/26/admissions/" target="_blank" rel="noopener">View full data &#8599;</a>
+      </div>
+
+      <!-- Chart 2: Visa Refusals -->
+      <div class="chart-card">
+        <div class="chart-title">F-1 Visa Refusal Rate Trend</div>
+        <div class="chart-container" id="chart2"></div>
+        <div class="chart-source"><strong>Source:</strong> Inside Higher Ed / Shorelight, Apr 2026</div>
+        <a class="chart-link" href="https://www.insidehighered.com/news/global/international-students-us/2026/04/11/f-1-student-visa-refusals-surged-2025" target="_blank" rel="noopener">Read full article &#8599;</a>
+      </div>
+
+      <!-- Chart 3: Financial Aid Thresholds -->
+      <div class="chart-card">
+        <div class="chart-title">No-Tuition Income Thresholds at Top Ivies</div>
+        <div class="chart-container" id="chart3"></div>
+        <div class="chart-source"><strong>Source:</strong> Yale University, Jan 2026; institutional financial aid pages</div>
+        <a class="chart-link" href="https://news.yale.edu/2026/01/27/yale-offer-free-tuition-families-incomes-below-200000" target="_blank" rel="noopener">Read Yale announcement &#8599;</a>
+      </div>
+
+      <!-- Chart 4: Application Volume -->
+      <div class="chart-card">
+        <div class="chart-title">Common App Volume: Year-Over-Year Change</div>
+        <div class="chart-container" id="chart4"></div>
+        <div class="chart-source"><strong>Source:</strong> Common App, March 1 Deadline Update, Mar 2026</div>
+        <a class="chart-link" href="https://www.commonapp.org/reports/march-2026-deadline-update/" target="_blank" rel="noopener">View full report &#8599;</a>
+      </div>
+
+      <div class="chart-data-disclaimer">All chart data sourced from linked articles and institutional reports. Data points reflect figures as reported by original sources. Verify critical data before use in institutional decision-making.</div>
+    </div>
+  </div>
+  <div class="news-col">
+    <div class="news-col-sticky">
+      <div class="sidebar-card">
+        <div class="sidebar-card-header sidebar-card-header-muted">News Access for Brown Employees</div>
+        <div class="news-access-list" id="newsAccessList"></div>
+        <div style="margin-top:10px;padding-top:8px;border-top:1px solid #EEECE7">
+          <a class="chart-link" href="https://libguides.brown.edu/newspapers" target="_blank" rel="noopener">All Brown academic passes &#8599;</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <p>This brief is generated using AI-powered news curation. All data points are sourced from linked articles and institutional reports. Verify critical details with primary sources before making institutional decisions.</p>
+</div>
+
+<script>
+// School order: Ivies alphabetical, then elites alphabetical (UChicago sorted as "Chicago")
+const SCHOOLS = [
+  "Brown", "Columbia", "Cornell", "Dartmouth", "Harvard", "Penn", "Princeton", "Yale",
+  "Duke", "MIT", "Stanford", "UChicago", "Vanderbilt"
+];
+const IVY_COUNT = 8;
+
+const CATEGORIES = {
+  ALL: "All",
+  FEDERAL: "Federal & Policy",
+  LEGAL: "Legal",
+  ADMISSIONS: "Admissions",
+  INTL: "International",
+  FINANCE: "Finance & Research",
+  SCHOOL: "School Watch"
+};
+
+const URGENCY_LABELS = { BREAKING: "Developing", HIGH: "High Priority", WATCH: "On the Radar", INFO: "Briefing" };
+
+const keyDates = [
+  { date: "May 1", text: "National deposit deadline, Class of 2030", urgent: true },
+  { date: "May 5", text: "Waitlist movement begins at most Ivies", urgent: false },
+  { date: "May 15", text: "FAFSA correction deadline for priority aid", urgent: false },
+  { date: "May 20", text: "Next accreditation rule-making session", urgent: false },
+  { date: "Jun 1", text: "CDS data release window opens", urgent: false },
+  { date: "Jul 1", text: "Harvard federal funding hearing date", urgent: true },
+  { date: "Aug 1", text: "Common App opens for 2026-27 cycle", urgent: false },
+];
+
+const todayStories = [
+  { id: 1, category: "FEDERAL", urgency: "BREAKING", date: "Apr 20, 2026", dayLabel: "Tuesday, April 22",
+    headline: "ED Dismisses Concerns During Accreditation Rule-Making Negotiations",
+    summary: "Education Under Secretary Nicholas Kent opened last week's accreditation rule-making meeting by declaring the administration is committed to 'implementing bold reform.' Policy experts say amendments made so far are largely structural and do not fully address concerns about institutional autonomy.",
+    source: "Inside Higher Ed", sourceUrl: "https://www.insidehighered.com/news/governance/accreditation/2026/04/20/ed-dismisses-concerns-during-accreditation-negotiations",
+    schools: [], sectorWide: true,
+    ivyRelevance: "All eight Ivy League schools rely on accreditation for federal funding eligibility. Any overhaul of the accreditation system could fundamentally alter compliance requirements and institutional governance expectations.",
+    compIntel: null },
+  { id: 2, category: "LEGAL", urgency: "HIGH", date: "Apr 2026", dayLabel: "Tuesday, April 22",
+    headline: "Trump Admin Escalates Legal Strategy Against Universities",
+    summary: "The DOJ has sued Harvard directly over its handling of antisemitism complaints and separately over DEI in admissions. The administration is now using lawsuits rather than just funding freezes to pressure specific institutions, while universities have notched several judicial victories blocking funding freezes and visa restrictions.",
+    source: "Inside Higher Ed", sourceUrl: "https://www.insidehighered.com/news/government/courts/2026/04/03/lawsuits-against-trump-pile-strategies-shift",
+    schools: ["Harvard", "Columbia", "Penn", "Brown", "Cornell", "Dartmouth", "Princeton"], sectorWide: false,
+    ivyRelevance: "Harvard is the most prominent target and remains in active litigation. Columbia settled for $221M plus policy changes. Penn, Brown, Cornell, Dartmouth, and Princeton have all faced funding reviews or pauses at various points.",
+    compIntel: "Harvard is fighting; Columbia settled. This creates a split precedent. Schools that settled early may have accepted more restrictive terms, while Harvard's litigation could establish stronger protections if successful. Admissions officers should understand which approach their institution is taking and how to discuss it with families." },
+  { id: 3, category: "SCHOOL", urgency: "HIGH", date: "Apr 15, 2026", dayLabel: "Tuesday, April 22",
+    headline: "Yale Faculty Committee Releases Sweeping Report on Collapse of Public Trust",
+    summary: "A year-long faculty study commissioned by President McInnis calls the erosion of public confidence in higher education 'real, urgent, and must be addressed.' Gallup data shows confidence in higher ed fell from 57% a decade ago to a historic low of 36% in 2024. The committee questioned whether the holistic admissions process is delivering on its promises.",
+    source: "Fortune", sourceUrl: "https://fortune.com/2026/04/15/yale-committee-report-problems-higher-education-ivy-league-schools/",
+    schools: ["Yale"], sectorWide: false,
+    ivyRelevance: "Yale's acceptance rate hit 4.24% for the Class of 2030. The report is one of the most self-critical examinations any elite university has publicly undertaken and is being read as a bellwether for how other Ivies might address similar challenges.",
+    compIntel: "Yale is the first Ivy to publicly question whether holistic admissions works as intended. If peer schools follow with their own reviews, the entire framework for evaluating applicants could evolve. Watch for Princeton and Harvard to respond, as they have been notably quiet on this topic." },
+  { id: 4, category: "ADMISSIONS", urgency: "HIGH", date: "Mar 27, 2026", dayLabel: "Tuesday, April 22",
+    headline: "Ivy Day 2026: Class of 2030 Acceptance Rates Reach New Lows",
+    summary: "All eight Ivy League schools released RD results on March 27. Columbia reported 4.23%, Yale 4.24%, Brown 5.35%. Harvard and Princeton withheld official data for the second straight year. Most Ivies now require standardized tests again for the Class of 2030.",
+    source: "Brown Daily Herald", sourceUrl: "https://projects.browndailyherald.com/2026/03/26/admissions/",
+    schools: ["Columbia", "Yale", "Brown", "Harvard", "Princeton"], sectorWide: false,
+    ivyRelevance: "SAT/ACT now required at Harvard, Brown, Dartmouth, Yale (test-flexible), Penn, and Cornell. Princeton remains test-optional through 2026-27 before returning to required for fall 2027.",
+    compIntel: "Testing policy is now a differentiator. Princeton's continued test-optional stance sets it apart from peers, which may influence applicant self-selection. Dartmouth and Brown led the return-to-testing wave and can point to early data on how it shaped their applicant pools. Vanderbilt and Duke, both test-required, saw application surges." },
+  { id: 5, category: "INTL", urgency: "BREAKING", date: "Apr 11, 2026", dayLabel: "Tuesday, April 22",
+    headline: "Student Visa Refusals Surged to 36% in 2025; Fall 2026 Enrollment at Risk",
+    summary: "New data shows international student visa issuances dropped 35.6% in summer 2025, far worse than predicted. F-1 visa refusal rates spiked dramatically in key sending countries. New international enrollment fell 17% from Fall 2024 to Fall 2025. NAFSA estimates a potential $7 billion loss in revenue.",
+    source: "Inside Higher Ed", sourceUrl: "https://www.insidehighered.com/news/global/international-students-us/2026/04/11/f-1-student-visa-refusals-surged-2025",
+    schools: ["Harvard"], sectorWide: true,
+    ivyRelevance: "Ivy League schools are need-blind for domestic students but rely on full-pay international students for revenue balance. Harvard has faced direct threats to its international student enrollment eligibility. The proposed 15% cap would significantly reshape Ivy class composition.",
+    compIntel: "MIT and Stanford have larger STEM-focused international populations and may feel disproportionate impact from visa restrictions in engineering and CS. Duke and UChicago have been actively expanding recruitment in Europe and Canada as a hedge against declines from China and India. Compare your institution's international mix to identify exposure." },
+  { id: 6, category: "LEGAL", urgency: "HIGH", date: "Mar 2026", dayLabel: "Tuesday, April 22",
+    headline: "Harvard Still Fighting Federal Funding Battle; NIH Grants Projected to Drop 30%",
+    summary: "One year after the funding fight began, Harvard remains the only Ivy still in active litigation against the administration over $2.2B+ in frozen grants. Columbia settled for $221M but faced 180 researcher layoffs. NIH grant projections show funded grants could drop from 40,000 to 27,000 in 2026.",
+    source: "Harvard Crimson", sourceUrl: "https://www.thecrimson.com/article/2026/4/16/trump-funding-freeze-appeal/",
+    schools: ["Harvard", "Columbia", "Penn"], sectorWide: false,
+    ivyRelevance: "Early-career researchers are hesitating to join Harvard. Harvard's endowment donations dropped $151M in a single year. The federal government investigated Penn, Harvard, UC Berkeley, and Michigan for foreign funding disclosure failures.",
+    compIntel: "Research funding vulnerability varies significantly across Ivies. Harvard and Penn have the largest NIH portfolios and face the most exposure. Princeton and Dartmouth have smaller federal research footprints and are comparatively insulated. Stanford and MIT are in a similar risk category to Harvard given their federal grant volume." },
+  { id: 7, category: "FEDERAL", urgency: "WATCH", date: "Jan 2026", dayLabel: "Tuesday, April 22",
+    headline: "$169M in FIPSE Grants Awarded for AI, Civil Discourse, and Accreditation Reform",
+    summary: "The Department of Education awarded $169M from the Fund for the Improvement of Postsecondary Education to support AI in teaching, civil discourse on campuses, accreditation reform, and short-term credential programs.",
+    source: "U.S. Dept. of Education", sourceUrl: "https://www.ed.gov/about/news/press-release/us-department-of-education-announces-negotiated-rulemaking-reform-and-strengthen-americas-higher-education-accreditation-system",
+    schools: [], sectorWide: true,
+    ivyRelevance: "Grant opportunities signal federal priorities that Ivy institutions may want to align with, particularly around AI integration and civil discourse programming.",
+    compIntel: null },
+  { id: 8, category: "SCHOOL", urgency: "WATCH", date: "Jan 2026", dayLabel: "Tuesday, April 22",
+    headline: "Yale Eliminates Tuition for Families Earning Under $200K",
+    summary: "Yale announced it will eliminate tuition for families earning less than $200,000 and cover full cost of attendance for families under $100,000, effective fall 2026. More than 80% of American households would qualify for at least partial scholarship coverage.",
+    source: "Yale University", sourceUrl: "https://news.yale.edu/2026/01/27/yale-offer-free-tuition-families-incomes-below-200000",
+    schools: ["Yale"], sectorWide: false,
+    ivyRelevance: "This represents the most aggressive financial aid expansion in recent Ivy League history and may pressure peer institutions to follow suit.",
+    compIntel: "The $200K threshold significantly undercuts Princeton's long-standing $150K no-tuition threshold and Harvard's $100K threshold. Brown, Dartmouth, and Cornell have more limited endowments and will face harder tradeoffs if families begin expecting similar generosity. Stanford matched Yale within weeks. This is now the new floor for top-tier financial aid messaging." },
+  { id: 9, category: "ADMISSIONS", urgency: "WATCH", date: "Apr 2026", dayLabel: "Tuesday, April 22",
+    headline: "Jewish Enrollment Declining at Several Ivies; Vanderbilt Surges",
+    summary: "Hillel International projects an 8-point drop in the proportion of Jewish students at Columbia since 2024, and Jewish enrollment at Harvard is reportedly at an all-time low. Vanderbilt has seen a dramatic surge in applications and selectivity.",
+    source: "AEI", sourceUrl: "https://www.aei.org/op-eds/why-vanderbilt-is-getting-jewish-life-right-and-others-arent/",
+    schools: ["Columbia", "Harvard", "Vanderbilt"], sectorWide: false,
+    ivyRelevance: "This demographic shift has implications for class composition, campus culture, alumni relations, and fundraising at multiple Ivy League institutions.",
+    compIntel: "Vanderbilt is the clearest beneficiary, seeing both application volume and yield gains. Duke and Rice are also reportedly gaining traction with students who previously focused exclusively on Northeastern elites. Columbia and Harvard have the most to lose in terms of alumni donor relationships tied to this demographic. Watch whether Penn and Cornell show similar enrollment shifts in their upcoming data." },
+  { id: 10, category: "FINANCE", urgency: "WATCH", date: "2026", dayLabel: "Tuesday, April 22",
+    headline: "Demographic Cliff and Institutional Consolidation Accelerating",
+    summary: "International enrollment declines, the approaching demographic cliff, and financial pressures are driving unprecedented change. Over 30 states invested $8.1B in short-term workforce credentials in 2025. Undergraduate certificate enrollment rose 14.7% since 2023.",
+    source: "Higher Ed Dive", sourceUrl: "https://www.highereddive.com/news/demographic-cliff-colleges-closures-retention-attendance-diversity-wiche/743636/",
+    schools: [], sectorWide: true,
+    ivyRelevance: "While Ivy League schools face less existential enrollment risk, the broader trend reshapes the competitive landscape for talent, the value proposition of a four-year degree, and the political environment in which elite institutions operate.",
+    compIntel: null }
+];
+
+const archiveStories = [
+  { id: 101, category: "SCHOOL", urgency: "HIGH", date: "Apr 21, 2026", dayLabel: "Monday, April 21",
+    headline: "Princeton Announces $500M Expansion of Engineering School",
+    summary: "Princeton revealed plans for a major expansion of its School of Engineering and Applied Science, funded by a combination of endowment draws and a new capital campaign. The expansion will add 30 new faculty lines and double graduate enrollment in CS and AI by 2030.",
+    source: "Princeton Engineering", sourceUrl: "https://engineering.princeton.edu/about/new-buildings",
+    schools: ["Princeton"], sectorWide: false,
+    ivyRelevance: "This positions Princeton to compete more directly with MIT and Stanford for top engineering talent, a space where it has historically lagged among Ivies.",
+    compIntel: "MIT and Stanford remain dominant but Princeton is closing the gap. Cornell's engineering school is larger but less well-resourced per capita. Harvard's Paulson School is also expanding but with a broader interdisciplinary focus. This reshapes how applicants compare Ivy engineering programs." },
+  { id: 102, category: "ADMISSIONS", urgency: "WATCH", date: "Apr 21, 2026", dayLabel: "Monday, April 21",
+    headline: "Common App Data Shows Continued Rise in Applications to Selective Schools",
+    summary: "Common App released mid-cycle data showing applications to schools with acceptance rates below 20% surged year-over-year. First-generation applicants increased 6% and applicants from below-median income ZIP codes grew 8%.",
+    source: "Common App", sourceUrl: "https://www.commonapp.org/about/reports-and-insights/",
+    schools: [], sectorWide: true,
+    ivyRelevance: "Rising application volumes without corresponding class size increases will continue to push acceptance rates lower, creating both a selectivity narrative advantage and growing public skepticism about the process.",
+    compIntel: null },
+  { id: 103, category: "INTL", urgency: "HIGH", date: "Apr 20, 2026", dayLabel: "Sunday, April 20",
+    headline: "UK and Canada Launch Campaigns to Recruit Students Deterred by US Visa Policies",
+    summary: "International analysis shows the UK, Canada, and Australia are actively positioning to recruit international students who have been denied US visas or are reconsidering American universities. Canada has introduced student permit caps while the UK is tightening compliance requirements.",
+    source: "HEPI", sourceUrl: "https://www.hepi.ac.uk/2026/01/08/whats-going-to-happen-in-international-education-in-2026/",
+    schools: [], sectorWide: true,
+    ivyRelevance: "This formalizes what has been an informal trend. Ivies now face organized competition for international talent from allied nations for the first time.",
+    compIntel: "Oxford, Cambridge, Imperial College London, University of Toronto, and McGill are the primary beneficiaries. Their combined brand recognition in key sending countries is growing rapidly. US institutions without strong existing international pipelines are most vulnerable." },
+  { id: 104, category: "SCHOOL", urgency: "WATCH", date: "Apr 18, 2026", dayLabel: "Saturday, April 18",
+    headline: "Dartmouth Health Awarded Federal Grant for Rural Healthcare Research",
+    summary: "Dartmouth's Geisel School of Medicine received a major NIH COBRE grant to establish a Center for Rural Health Care Delivery Science, funding new research infrastructure and junior faculty development focused on healthcare delivery in rural settings.",
+    source: "Dartmouth Health", sourceUrl: "https://www.dartmouth-health.org/news/dartmouth-health-awarded-116m-federal-grant",
+    schools: ["Dartmouth"], sectorWide: false,
+    ivyRelevance: "The grant demonstrates that federal funding opportunities remain available even in the current political climate, particularly for programs aligned with administration priorities around rural healthcare.",
+    compIntel: null },
+  { id: 105, category: "LEGAL", urgency: "HIGH", date: "Apr 17, 2026", dayLabel: "Friday, April 17",
+    headline: "Senate Committee Advances Bill to Cap University Endowment Tax Exemptions",
+    summary: "The Senate Finance Committee voted to advance a bill that would increase the endowment excise tax from 1.4% to 3.5% for institutions with endowments exceeding $10B per student. The bill also includes provisions requiring minimum endowment spending on financial aid.",
+    source: "Harvard Magazine", sourceUrl: "https://www.harvardmagazine.com/harvard-in-the-crosshairs/harvard-trump-administration-lawsuits",
+    schools: ["Harvard", "Yale", "Princeton", "Stanford"], sectorWide: false,
+    ivyRelevance: "Harvard ($50.7B), Yale ($41.4B), Princeton ($35.8B), and Stanford ($36.3B) would be most affected. The bill could redirect hundreds of millions in endowment returns toward mandated financial aid or tax payments.",
+    compIntel: "This creates a meaningful divide between mega-endowment schools (Harvard, Yale, Princeton, Stanford) and large-but-not-enormous endowments (Columbia, Penn, Cornell, Dartmouth, Brown). The latter group may actually benefit from a competitive landscape where wealthier peers face spending mandates that constrain their strategic flexibility." },
+  { id: 106, category: "ADMISSIONS", urgency: "WATCH", date: "Apr 16, 2026", dayLabel: "Thursday, April 16",
+    headline: "Brown Reports Record Yield; Credits 'Open Curriculum' Messaging",
+    summary: "Brown's admissions office shared preliminary data showing a record yield rate for the Class of 2030, attributed in part to a revamped admitted-student communication strategy centered on the Open Curriculum's flexibility and student agency.",
+    source: "Brown Daily Herald", sourceUrl: "https://www.browndailyherald.com/article/2026/03/brown-admits-5-35-of-applicants-to-class-of-2030",
+    schools: ["Brown"], sectorWide: false,
+    ivyRelevance: "Brown's success with mission-driven yield messaging provides a model for how distinctive curricular philosophies can differentiate in an increasingly competitive admitted-student marketplace.",
+    compIntel: "Brown and Columbia (Core Curriculum) represent opposing approaches to curricular identity in Ivy admissions marketing. Princeton's independent work requirement and UChicago's Common Core are analogous differentiators outside the Ivy League. Schools without a strong curricular narrative may want to develop one." }
+];
+
+const allStories = [...todayStories, ...archiveStories];
+let activeCategory = "ALL", activeSchool = null, expandedId = null, currentView = "today";
+
+function getVisibleStories() { return currentView === "today" ? todayStories : allStories; }
+function getFilteredStories() {
+  let base = getVisibleStories();
+  if (activeSchool) base = base.filter(s => s.schools.includes(activeSchool) || s.sectorWide);
+  if (activeCategory !== "ALL") base = base.filter(s => s.category === activeCategory);
+  return base;
+}
+function getCounts() {
+  let base = getVisibleStories();
+  if (activeSchool) base = base.filter(s => s.schools.includes(activeSchool) || s.sectorWide);
+  const c = { ALL: base.length };
+  base.forEach(s => { c[s.category] = (c[s.category] || 0) + 1; });
+  return c;
+}
+function setView(v) {
+  currentView = v; expandedId = null;
+  document.getElementById("todayBtn").className = "view-toggle-btn" + (v === "today" ? " active" : "");
+  document.getElementById("weekBtn").className = "view-toggle-btn" + (v === "week" ? " active" : "");
+  renderFilters(); renderStories();
+}
+
+function renderDates() {
+  document.getElementById("datesScroll").innerHTML = keyDates.map(d =>
+    '<div class="date-item' + (d.urgent ? ' date-item-urgent' : '') + '">' +
+      '<div class="date-item-dot"></div><div class="date-item-date">' + d.date + '</div>' +
+      '<div class="date-item-text">' + d.text + '</div></div>'
+  ).join("");
+}
+
+function renderCharts() {
+  // Chart 1: Acceptance rates horizontal bars
+  const rates = [
+    { school: "Columbia", rate: 4.23, color: "#1A5E73" },
+    { school: "Yale", rate: 4.24, color: "#2D7D9A" },
+    { school: "Brown", rate: 5.35, color: "#C45B28" },
+    { school: "Dartmouth", rate: 5.5, color: "#3A8FB0" },
+    { school: "Penn", rate: 5.7, color: "#4CA1C1" },
+    { school: "Cornell", rate: 7.0, color: "#6BB5CF" },
+  ];
+  document.getElementById("chart1").innerHTML = rates.map(r =>
+    '<div class="chart-bar-group"><div class="chart-bar-label">' + r.school + '</div>' +
+    '<div class="chart-bar-track"><div class="chart-bar-fill" style="width:' + (r.rate / 8 * 100) + '%;background:' + r.color + '">' + r.rate + '%</div></div></div>'
+  ).join("") + '<div style="font-size:9px;color:#AAB4BA;margin-top:6px">Harvard, Princeton withheld data. Brown highlighted.</div>';
+
+  // Chart 2: Visa refusal trend
+  const visa = [
+    { year: "2022", rate: 20 },
+    { year: "2023", rate: 24 },
+    { year: "2024", rate: 29 },
+    { year: "2025", rate: 36 },
+  ];
+  document.getElementById("chart2").innerHTML = '<div style="display:flex;align-items:flex-end;gap:12px;height:80px;padding-top:8px">' +
+    visa.map(v => {
+      const h = (v.rate / 40) * 70;
+      const isLatest = v.year === "2025";
+      return '<div style="flex:1;text-align:center"><div style="background:' + (isLatest ? '#D64045' : '#2D7D9A') +
+        ';height:' + h + 'px;border-radius:4px 4px 0 0;margin:0 auto;width:80%;display:flex;align-items:flex-start;justify-content:center;padding-top:4px">' +
+        '<span style="font-size:10px;font-weight:600;color:#fff">' + v.rate + '%</span></div>' +
+        '<div style="font-size:10px;color:#5C6B73;margin-top:4px">' + v.year + '</div></div>';
+    }).join("") + '</div>';
+
+  // Chart 3: Financial aid thresholds
+  const aid = [
+    { school: "Princeton", threshold: 250, color: "#1A5E73" },
+    { school: "Harvard", threshold: 200, color: "#2D7D9A" },
+    { school: "Yale", threshold: 200, color: "#3A8FB0" },
+    { school: "Stanford", threshold: 150, color: "#4CA1C1" },
+    { school: "Brown", threshold: 125, color: "#C45B28" },
+  ];
+  document.getElementById("chart3").innerHTML = aid.map(a =>
+    '<div class="chart-bar-group"><div class="chart-bar-label">' + a.school + '</div>' +
+    '<div class="chart-bar-track"><div class="chart-bar-fill" style="width:' + (a.threshold / 270 * 100) + '%;background:' + a.color + '">$' + a.threshold + 'K</div></div></div>'
+  ).join("") + '<div style="font-size:9px;color:#AAB4BA;margin-top:6px">Family income below which tuition is eliminated (typical assets). Brown highlighted.</div>';
+
+  // Chart 4: Common App volume
+  const vol = [
+    { label: "Total applications", val: "+5%", w: 70, color: "#2D7D9A" },
+    { label: "Unique applicants", val: "+2%", w: 40, color: "#3A8FB0" },
+    { label: "First-gen applicants", val: "+6%", w: 55, color: "#4CA1C1" },
+    { label: "Below-median income", val: "+8%", w: 75, color: "#1A5E73" },
+  ];
+  document.getElementById("chart4").innerHTML = vol.map(v =>
+    '<div class="chart-bar-group"><div class="chart-bar-label">' + v.label + '</div>' +
+    '<div class="chart-bar-track"><div class="chart-bar-fill" style="width:' + v.w + '%;background:' + v.color + '">' + v.val + '</div></div></div>'
+  ).join("");
+}
+
+function renderSchoolTags() {
+  const container = document.getElementById("schoolTags");
+  container.innerHTML = "";
+  SCHOOLS.forEach((school, i) => {
+    if (i === IVY_COUNT) {
+      const div = document.createElement("div");
+      div.className = "school-tag-divider";
+      container.appendChild(div);
+    }
+    const btn = document.createElement("button");
+    btn.className = "school-tag" + (activeSchool === school ? " active" : "");
+    btn.textContent = school;
+    btn.onclick = () => { if (activeSchool === school) clearSchoolFilter(); else { activeSchool = school; activeCategory = "ALL"; expandedId = null; renderAll(); } };
+    container.appendChild(btn);
+  });
+  const hint = document.getElementById("schoolFilterHint"), hintText = document.getElementById("schoolFilterText");
+  if (activeSchool) {
+    hint.classList.add("visible");
+    const base = getVisibleStories();
+    const sp = base.filter(s => s.schools.includes(activeSchool)).length;
+    const sw = base.filter(s => s.sectorWide && !s.schools.includes(activeSchool)).length;
+    hintText.textContent = "Showing " + sp + " stories mentioning " + activeSchool + " + " + sw + " sector-wide";
+  } else hint.classList.remove("visible");
+}
+function clearSchoolFilter() { activeSchool = null; activeCategory = "ALL"; expandedId = null; renderAll(); }
+
+function renderFilters() {
+  const bar = document.getElementById("filterBar"), counts = getCounts();
+  bar.innerHTML = "";
+  Object.entries(CATEGORIES).forEach(([key, label]) => {
+    const count = counts[key] || 0;
+    if (key !== "ALL" && count === 0) return;
+    const btn = document.createElement("button");
+    btn.className = "filter-btn" + (activeCategory === key ? " active" : "");
+    btn.innerHTML = label + '<span class="filter-count">(' + count + ')</span>';
+    btn.onclick = () => { activeCategory = key; expandedId = null; renderFilters(); renderStories(); };
+    bar.appendChild(btn);
+  });
+}
+
+function buildCard(story, idx) {
+  const isOpen = expandedId === story.id;
+  const schoolTags = story.schools.map(s => '<span class="school-mention' + (activeSchool === s ? ' highlighted' : '') + '">' + s + '</span>').join("");
+  const sectorTag = (activeSchool && story.sectorWide && story.schools.length === 0) ? '<span class="school-mention">Sector-wide</span>' : "";
+  const hasCI = story.compIntel && story.compIntel.length > 0;
+  const panels = '<div class="ivy-panel"><div class="ivy-panel-label">Why This Matters for Your Institutions</div><p>' + story.ivyRelevance + '</p></div>' +
+    (hasCI ? '<div class="comp-panel"><div class="comp-panel-label">Competitive Intelligence</div><p>' + story.compIntel + '</p></div>' : '');
+  return '<div class="story-card" style="animation-delay:' + (idx * 0.05) + 's"><div class="story-main" onclick="toggleStory(' + story.id + ')"><div class="story-left"><span class="urgency-badge urgency-' + story.urgency + '">' + URGENCY_LABELS[story.urgency] + '</span><span class="story-date">' + story.date + '</span></div><div class="story-body"><div class="story-headline">' + story.headline + '</div><div class="story-summary">' + story.summary + '</div><div class="story-meta"><span class="story-source"><a href="' + story.sourceUrl + '" target="_blank" rel="noopener" onclick="event.stopPropagation()">' + story.source + ' \u2197</a></span>' + schoolTags + sectorTag + '</div><div class="expand-indicator"><span class="expand-arrow ' + (isOpen ? 'open' : '') + '">\u25B8</span>' + (isOpen ? 'Hide' : 'View') + ' implications' + (hasCI && !isOpen ? ' + competitive intel' : '') + '</div></div></div><div class="panel-container ' + (isOpen ? 'open' : '') + '">' + panels + '</div></div>';
+}
+
+function renderStories() {
+  const container = document.getElementById("storiesContainer"), label = document.getElementById("sectionLabel");
+  const filtered = getFilteredStories();
+  let lt = filtered.length + " " + (filtered.length === 1 ? "story" : "stories");
+  if (activeCategory !== "ALL") lt += " in " + CATEGORIES[activeCategory];
+  if (activeSchool) lt += " related to " + activeSchool;
+  if (currentView === "week") lt += " (last 7 days)";
+  label.textContent = lt;
+  if (filtered.length === 0) { container.innerHTML = '<div class="empty-state">No stories match this combination of filters.<br>Try a different category or clear the school filter.</div>'; return; }
+  if (currentView === "week") {
+    const groups = {}, order = [];
+    filtered.forEach(s => { if (!groups[s.dayLabel]) { groups[s.dayLabel] = []; order.push(s.dayLabel); } groups[s.dayLabel].push(s); });
+    let idx = 0;
+    container.innerHTML = order.map(day => '<div class="day-group-header">' + day + '<span class="day-group-count">' + groups[day].length + ' stories</span></div>' + groups[day].map(s => buildCard(s, idx++)).join("")).join("");
+  } else container.innerHTML = filtered.map((s, i) => buildCard(s, i)).join("");
+}
+function toggleStory(id) { expandedId = expandedId === id ? null : id; renderStories(); }
+function renderNewsAccess() {
+  const sources = [
+    { name: "Inside Higher Ed", url: "https://www.insidehighered.com", type: "read" },
+    { name: "Chronicle of Higher Ed", url: "https://www.chronicle.com", type: "read" },
+    { name: "New York Times", url: "https://library.brown.edu/eresources/nytimes.php", type: "pass" },
+    { name: "Wall Street Journal", url: "https://library.brown.edu/eresources/wsjournal.php", type: "pass" },
+    { name: "Financial Times", url: "https://www.ft.com", type: "read" },
+    { name: "The Atlantic", url: "https://theatlantic.com/brownuniversity-login/", type: "pass" },
+  ];
+  document.getElementById("newsAccessList").innerHTML = sources.map(s =>
+    '<div class="news-access-item"><span class="news-access-name">' + s.name + '</span>' +
+    '<a class="news-access-badge' + (s.type === 'pass' ? ' pass' : '') + '" href="' + s.url + '" target="_blank" rel="noopener">' +
+    (s.type === 'pass' ? 'Activate Pass' : 'Read') + '</a></div>'
+  ).join("");
+}
+function renderAll() { renderDates(); renderCharts(); renderNewsAccess(); renderSchoolTags(); renderFilters(); renderStories(); }
+renderAll();
+</script>
+</body>
+</html>
