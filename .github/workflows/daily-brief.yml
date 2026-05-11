@@ -1,0 +1,52 @@
+name: Daily Higher Ed Brief
+on:
+  schedule:
+    - cron: '0 10 * * 1-5'  # 6 AM ET (10 UTC) weekdays
+  workflow_dispatch:  # manual trigger
+ 
+jobs:
+  generate-brief:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate dashboard
+        run: |
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H 'Content-Type: application/json' \
+            -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
+            -H 'anthropic-version: 2023-06-01' \
+            -d @generate-prompt.json)
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          text = ''.join(b.get('text','') for b in data.get('content',[]))
+          start = text.find('<!DOCTYPE') if '<!DOCTYPE' in text else text.find('<html')
+          if start == -1: start = 0
+          with open('generated.html','w') as f: f.write(text[start:])"
+      - name: Verify dashboard
+        run: |
+          python3 -c "
+          import json
+          with open('generated.html') as f: html = f.read()
+          with open('verify-prompt-template.json') as f: tmpl = json.load(f)
+          msg = tmpl['messages'][0]['content'].replace('{{HTML}}', html)
+          tmpl['messages'][0]['content'] = msg
+          with open('verify-request.json','w') as f: json.dump(tmpl, f)"
+          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+            -H 'Content-Type: application/json' \
+            -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
+            -H 'anthropic-version: 2023-06-01' \
+            -d @verify-request.json)
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          data = json.load(sys.stdin)
+          text = ''.join(b.get('text','') for b in data.get('content',[]))
+          start = text.find('<!DOCTYPE') if '<!DOCTYPE' in text else text.find('<html')
+          if start == -1: start = 0
+          with open('index.html','w') as f: f.write(text[start:])"
+      - name: Publish
+        run: |
+          git config user.name 'github-actions'
+          git config user.email 'actions@github.com'
+          git add index.html
+          git diff --cached --quiet || (git commit -m 'Daily brief update' && git push)
