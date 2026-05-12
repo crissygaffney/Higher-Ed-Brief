@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Higher Ed Intelligence Brief | Brown University Office of College Admission</title>
+<style>
+  /* ── Reset & Base ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Georgia', serif;
+    background: #f4f2ee;
+    color: #1a1a1a;
+    font-size: 14.5px;
+    line-height: 1.62;
+  }
+  a { color: #6b2737; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Header ── */
+  header {
+    background: linear-gradient(135deg, #6b2737 0%, #4a1c27 100%);
+    color: #fff;
+    padding: 18px 32px 14px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    border-bottom: 4px solid #c8a951;
+  }
+  header .branding h1 {
+    font-size: 1.65rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    line-height: 1.15;
+  }
+  header .branding p {
+    font-size: 0.78rem;
+    color: #f0ddb7;
+    margin-top: 3px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+  header .meta {
+    text-align: right;
+    font-size: 0.75rem;
+    color: #f0ddb7;
+    line-height: 1.5;
+  }
+  header .meta .datestamp {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  /* ── Layout ── */
+  .page-grid {
+    display: grid;
+    grid-template-columns: 1fr 280px 230px;
+    gap: 0;
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  /* ── Stories Column ── */
+  .stories-col {
+    padding: 24px 22px 40px 28px;
+    border-right: 1px solid #d9d3c8;
+  }
+
+  .col-header {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: #6b2737;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #6b2737;
+    margin-bottom: 18px;
+  }
+
+  /* ── Story Card ── */
+  .story-card {
+    background: #fff;
+    border-radius: 6px;
+    border-left: 5px solid #ccc;
+    padding: 15px 17px 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.07);
+  }
+  .story-card.urgency-breaking { border-left-color: #c0392b; }
+  .story-card.urgency-high     { border-left-color: #e67e22; }
+  .story-card.urgency-watch    { border-left-color: #2980b9; }
+  .story-card.urgency-info     { border-left-color: #27ae60; }
+
+  .story-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+  }
+  .urgency-badge {
+    font-size: 0.6rem;
+    font-family: 'Arial', sans-serif;
+    font-weight: 800;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 3px;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .breaking { background: #c0392b; }
+  .high     { background: #e67e22; }
+  .watch    { background: #2980b9; }
+  .info     { background: #27ae60; }
+
+  .category-label {
+    font-size: 0.62rem;
+    font-family: 'Arial', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #888;
+    font-weight: 600;
+  }
+
+  .story-headline {
+    font-size: 1.04rem;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #1a1a1a;
+    margin-bottom: 6px;
+  }
+  .story-headline a { color: #1a1a1a; }
+  .story-headline a:hover { color: #6b2737; }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .tag {
+    font-size: 0.58rem;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    background: #f0ece4;
+    color: #4a3728;
+    border: 1px solid #d9d0c1;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .tag.brown { background: #6b2737; color: #fff; border-color: #6b2737; }
+
+  .story-body {
+    font-size: 0.88rem;
+    color: #333;
+    margin-bottom: 9px;
+    line-height: 1.6;
+  }
+
+  .story-meta {
+    font-size: 0.72rem;
+    font-family: 'Arial', sans-serif;
+    color: #999;
+    margin-bottom: 7px;
+  }
+
+  .implications-box {
+    background: #f9f5ef;
+    border: 1px solid #e8dfc8;
+    border-radius: 4px;
+    padding: 8px 11px;
+    font-size: 0.81rem;
+    color: #3a2e20;
+    margin-bottom: 7px;
+  }
+  .implications-box strong {
+    font-family: 'Arial', sans-serif;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #6b2737;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .compint-box {
+    background: #eef4fb;
+    border: 1px solid #c5d9ef;
+    border-radius: 4px;
+    padding: 8px 11px;
+    font-size: 0.81rem;
+    color: #1a2e40;
+    margin-bottom: 7px;
+  }
+  .compint-box strong {
+    font-family: 'Arial', sans-serif;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #1a5276;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .source-link {
+    font-size: 0.72rem;
+    font-family: 'Arial', sans-serif;
+    color: #6b2737;
+  }
+
+  /* ── Sidebar ── */
+  .sidebar-col {
+    background: #f9f7f3;
+    padding: 22px 18px 40px;
+    border-right: 1px solid #d9d3c8;
+  }
+
+  .sidebar-section {
+    margin-bottom: 26px;
+  }
+  .sidebar-section-title {
+    font-size: 0.62rem;
+    font-family: 'Arial', sans-serif;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .11em;
+    color: #6b2737;
+    border-bottom: 2px solid #6b2737;
+    padding-bottom: 5px;
+    margin-bottom: 12px;
+  }
+
+  /* Key Dates */
+  .key-date-item {
+    display: flex;
+    gap: 9px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+  .key-date-pill {
+    background: #6b2737;
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    font-size: 0.59rem;
+    font-weight: 700;
+    padding: 3px 7px;
+    border-radius: 3px;
+    white-space: nowrap;
+    line-height: 1.4;
+    text-align: center;
+    min-width: 52px;
+  }
+  .key-date-pill.gold { background: #b8960a; }
+  .key-date-pill.blue { background: #1a5276; }
+  .key-date-text {
+    font-size: 0.78rem;
+    color: #333;
+    line-height: 1.4;
+  }
+  .key-date-text strong {
+    display: block;
+    font-weight: 700;
+    font-family: 'Arial', sans-serif;
+    font-size: 0.75rem;
+  }
+
+  /* Chart */
+  .chart-box {
+    background: #fff;
+    border: 1px solid #e0d8cc;
+    border-radius: 5px;
+    padding: 12px 13px 10px;
+    margin-bottom: 14px;
+  }
+  .chart-title {
+    font-size: 0.72rem;
+    font-family: 'Arial', sans-serif;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .chart-source {
+    font-size: 0.62rem;
+    color: #999;
+    font-family: 'Arial', sans-serif;
+    margin-top: 7px;
+    line-height: 1.3;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 7px;
+  }
+  .bar-label {
+    font-size: 0.7rem;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    min-width: 68px;
+    text-align: right;
+    line-height: 1.2;
+  }
+  .bar-track {
+    flex: 1;
+    background: #e8e3da;
+    border-radius: 3px;
+    height: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    position: absolute;
+    left: 0; top: 0;
+  }
+  .bar-val {
+    font-size: 0.66rem;
+    font-family: 'Arial', sans-serif;
+    color: #333;
+    min-width: 32px;
+    text-align: left;
+    line-height: 1;
+  }
+  .bar-fill.crimson { background: #8b1a2f; }
+  .bar-fill.slate   { background: #2c4a6e; }
+  .bar-fill.forest  { background: #1d6b48; }
+  .bar-fill.amber   { background: #c8a951; }
+  .bar-fill.steel   { background: #5a7a9a; }
+  .bar-fill.rust    { background: #b5451e; }
+
+  /* ── Right Panel ── */
+  .access-col {
+    background: #1a1a1a;
+    padding: 22px 16px 40px;
+    color: #e8e0d0;
+  }
+  .access-col .sidebar-section-title {
+    color: #c8a951;
+    border-bottom-color: #c8a951;
+  }
+  .access-link-item {
+    margin-bottom: 11px;
+  }
+  .access-link-item a {
+    color: #c8dff0;
+    font-size: 0.82rem;
+    font-family: 'Arial', sans-serif;
+    font-weight: 600;
+    display: block;
+    line-height: 1.3;
+  }
+  .access-link-item a:hover { color: #fff; }
+  .access-link-desc {
+    font-size: 0.68rem;
+    color: #999;
+    margin-top: 2px;
+    font-family: 'Arial', sans-serif;
+    line-height: 1.3;
+  }
+
+  .access-divider {
+    border: none;
+    border-top: 1px solid #333;
+    margin: 14px 0;
+  }
+
+  .news-tip {
+    background: #2a1a0d;
+    border: 1px solid #c8a951;
+    border-radius: 4px;
+    padding: 9px 10px;
+    font-size: 0.73rem;
+    color: #d4c4a0;
+    line-height: 1.45;
+    margin-top: 14px;
+  }
+  .news-tip strong {
+    color: #c8a951;
+    display: block;
+    font-family: 'Arial', sans-serif;
+    font-size: 0.63rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    margin-bottom: 4px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    background: #4a1c27;
+    color: #c8b090;
+    text-align: center;
+    padding: 12px 20px;
+    font-size: 0.7rem;
+    font-family: 'Arial', sans-serif;
+    line-height: 1.5;
+    border-top: 3px solid #c8a951;
+  }
+  footer a { color: #f0d080; }
+
+  /* ── Responsive ── */
+  @media (max-width: 1050px) {
+    .page-grid { grid-template-columns: 1fr 260px; }
+    .access-col { display: none; }
+  }
+  @media (max-width: 720px) {
+    .page-grid { grid-template-columns: 1fr; }
+    .sidebar-col { border-right: none; border-top: 1px solid #d9d3c8; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════ HEADER ══ -->
+<header>
+  <div class="branding">
+    <h1>Higher Ed Intelligence Brief</h1>
+    <p>Curated for Brown University Office of College Admission</p>
+  </div>
+  <div class="meta">
+    <div class="datestamp">May 12, 2026</div>
+    <div>Vol. 2026 &nbsp;|&nbsp; Weekly Edition</div>
+    <div>9 Stories &nbsp;|&nbsp; Federal Policy &bull; Legal &bull; Finance &bull; Enrollment</div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════ GRID ══ -->
+<div class="page-grid">
+
+<!-- ════════════════════════════ LEFT: STORIES ════════════════════════════ -->
+<main class="stories-col">
+  <div class="col-header">Top Stories This Week</div>
+
+  <!-- ── STORY 1 ── -->
+  <article class="story-card urgency-breaking">
+    <div class="story-top">
+      <span class="urgency-badge breaking">Breaking</span>
+      <span class="category-label">Federal Policy / Legal</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.thecrimson.com/article/2026/4/16/trump-funding-freeze-appeal/" target="_blank">Trump Administration Appeals Harvard Funding Ruling, Seeks Reinstatement of $2.7B Freeze at First Circuit</a>
+    </h2>
+    <div class="tags">
+      <span class="tag">Harvard</span>
+      <span class="tag">Federal Policy</span>
+      <span class="tag">Legal</span>
+    </div>
+    <p class="story-body">
+      The Trump administration has filed a sweeping 160-page brief with the First Circuit Court of Appeals, asking the court to overturn the September ruling that struck down its freeze on Harvard's research funding. <a href="https://www.thecrimson.com/article/2026/4/16/trump-funding-freeze-appeal/" target="_blank">The Harvard Crimson</a> reports that <span title="Source: Harvard Crimson, Apr 16 2026">the administration called on the First Circuit to reinstate its roughly $2.7 billion freeze on Harvard's research funding, arguing that it acted within its authority when it terminated the University's grants.</span> The brief rests on three core arguments: that the district court lacked jurisdiction, that Title VI does not exclusively govern funding terminations, and that the April 2025 demand letter did not violate the First Amendment. <span title="Source: Harvard Crimson">Federal lawyers argued that agencies retain authority under the terms of grant agreements to terminate funding when it no longer "effectuate[s] program goals."</span> Separately, <a href="https://www.highereddive.com/news/doj-sues-harvard-in-bid-to-recoup-federal-grants-cut-off-future-access/815372/" target="_blank">Higher Ed Dive</a> reported that the DOJ filed a standalone lawsuit in March accusing Harvard of being deliberately indifferent to campus antisemitism, seeking both repayment of awarded grants and a permanent cut to future funding, including Pell Grants and student loans.
+    </p>
+    <div class="story-meta">Sources: Harvard Crimson (Apr. 16, 2026) &bull; Higher Ed Dive (Mar. 20, 2026) &bull; Harvard Magazine (May-June 2026)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown</strong>
+      Brown has already reached its own settlement with the administration. The Harvard case remains the defining legal test for whether federal agencies can use grant termination as ideological leverage outside of Title VI procedures. A First Circuit ruling against Harvard would dramatically expand federal coercive power over all research universities, including Brown's $785M+ annual sponsored research portfolio.
+    </div>
+    <div class="compint-box">
+      <strong>Competitive Intelligence</strong>
+      Harvard's continued litigation stance means its researchers face ongoing uncertainty and potential talent migration. Brown, having settled, is in a relatively stable position to recruit faculty from institutions still in legal or financial limbo. Monitor for Harvard faculty departures to peer institutions.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.thecrimson.com/article/2026/4/16/trump-funding-freeze-appeal/" target="_blank">Read: Harvard Crimson</a></span>
+  </article>
+
+  <!-- ── STORY 2 ── -->
+  <article class="story-card urgency-breaking">
+    <div class="story-top">
+      <span class="urgency-badge breaking">Breaking</span>
+      <span class="category-label">Campus Safety / Institutional</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.browndailyherald.com/article/2026/05/university-announces-summer-plans-for-barus-and-holley-renovations-security-camera-expansions" target="_blank">Brown Announces Barus and Holley Renovation Plan, Security Expansions Following Dec. 13 Shooting</a>
+    </h2>
+    <div class="tags">
+      <span class="tag brown">Brown</span>
+      <span class="tag">Campus Safety</span>
+      <span class="tag">Institutional</span>
+    </div>
+    <p class="story-body">
+      President Christina Paxson announced this week a "full and transformational renovation" of the classrooms closed since the December 13 mass shooting that killed two students and injured nine others. The <a href="https://www.browndailyherald.com/article/2026/05/university-announces-summer-plans-for-barus-and-holley-renovations-security-camera-expansions" target="_blank">Brown Daily Herald</a> reports that <span title="Source: Brown Daily Herald, May 8 2026">the University is in the process of renovating 10 Barus and Holley classrooms that were closed after the Dec. 13 shooting, with the goal of having the rooms available for use in the middle of the 2026-27 academic year.</span> These rooms represent <span title="Source: Brown Daily Herald">roughly 10% of the University's 105 registrar-controlled classrooms, and 33% of the large classrooms on campus.</span> Security camera coverage will be expanded over the summer to buildings housing sensitive research and critical infrastructure. Global consulting firm Teneo is simultaneously conducting an after-action review and a campus-wide safety and security assessment, with key results to be shared with the campus community in August. Separately, the <a href="https://www.browndailyherald.com/" target="_blank">Brown Daily Herald</a> reported that criminal extortion group ShinyHunters claimed responsibility for a cyberattack on Brown's Canvas learning management system.
+    </p>
+    <div class="story-meta">Sources: Brown Daily Herald (May 7-8, 2026) &bull; Brown University News (May 8, 2026) &bull; WPRI/WJAR (May 8-10, 2026)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown Admission</strong>
+      Prospective students and families will have questions about campus safety during visit season and Commencement Weekend (May 22-24). Admission staff should be prepared to speak to concrete safety investments, the Teneo review timeline, and the renovation plan. The Class of 2030 admitted students tour campus at a moment of active healing and visible institutional response. Messaging should be empathetic, concrete, and forward-looking.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.browndailyherald.com/article/2026/05/university-announces-summer-plans-for-barus-and-holley-renovations-security-camera-expansions" target="_blank">Read: Brown Daily Herald</a></span>
+  </article>
+
+  <!-- ── STORY 3 ── -->
+  <article class="story-card urgency-high">
+    <div class="story-top">
+      <span class="urgency-badge high">High</span>
+      <span class="category-label">International Enrollment / Immigration</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.insidehighered.com/news/quick-takes/2026/01/13/trump-admin-says-it-revoked-8000-student-visas" target="_blank">State Department Reports 8,000 Student Visas Revoked Since Trump's Return; Broader Campaign Against International Students Continues</a>
+    </h2>
+    <div class="tags">
+      <span class="tag">Harvard</span>
+      <span class="tag">Columbia</span>
+      <span class="tag">Brown</span>
+      <span class="tag">Cornell</span>
+      <span class="tag">Penn</span>
+      <span class="tag">MIT</span>
+      <span class="tag">Stanford</span>
+      <span class="tag">All Ivies</span>
+      <span class="tag">International</span>
+    </div>
+    <p class="story-body">
+      According to <a href="https://www.insidehighered.com/news/quick-takes/2026/01/13/trump-admin-says-it-revoked-8000-student-visas" target="_blank">Inside Higher Ed</a>, <span title="Source: Inside Higher Ed, Jan 13 2026">the Department of State has revoked 8,000 student visas since the start of President Donald Trump's second term.</span> In total, <span title="Source: Inside Higher Ed">the administration has revoked 100,000 nonimmigrant visas, which is about double the number revoked in former President Joe Biden's last year.</span> A survey by the Presidents' Alliance found that <span title="Source: NAFSA">interest in U.S. postgraduate education has plunged 40 percent since January 2025 while there is rising interest in Germany, France, and China as a study destination.</span> Enforcement actions have included mass SEVIS record terminations, expanded social media vetting for all F, M, and J visa applicants, and a "one-strike" proposal from Secretary Rubio. The Trump administration has also encouraged universities to voluntarily cap international student enrollment and is working toward regulatory changes that would make it more difficult for international students to study in the U.S.
+    </p>
+    <div class="story-meta">Sources: Inside Higher Ed (Jan. 13, 2026) &bull; NAFSA (Apr. 10, 2025) &bull; Presidents' Alliance (Updated Mar. 2026)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown Admission</strong>
+      Brown's international student community (~13% of undergrad enrollment) faces direct legal vulnerability. The 40% drop in prospective international student interest is a structural enrollment threat. Brown's admission office should monitor pipeline data from key feeder countries (China, India, South Korea, Canada, UK) closely and be prepared to answer international family questions about SEVIS stability, social media vetting, and travel advisories in counseling interactions.
+    </div>
+    <div class="compint-box">
+      <strong>Competitive Intelligence</strong>
+      Peer institutions across the board face the same headwinds, but schools that have settled with the administration (Brown, Columbia, Cornell) have somewhat more SEVP stability than Harvard, which remains under active DHS scrutiny. This is a potential differentiation point in international recruitment.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.insidehighered.com/news/quick-takes/2026/01/13/trump-admin-says-it-revoked-8000-student-visas" target="_blank">Read: Inside Higher Ed</a></span>
+  </article>
+
+  <!-- ── STORY 4 ── -->
+  <article class="story-card urgency-high">
+    <div class="story-top">
+      <span class="urgency-badge high">High</span>
+      <span class="category-label">Institutional Finance / Federal Policy</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.csmonitor.com/USA/Education/2026/0226/endowment-tax-higher-education-universities" target="_blank">New Tiered Endowment Tax Takes Effect in 2026, Forcing Doctoral Cuts and Hiring Freezes at Harvard, Yale, Stanford, MIT</a>
+    </h2>
+    <div class="tags">
+      <span class="tag">Harvard</span>
+      <span class="tag">Yale</span>
+      <span class="tag">Princeton</span>
+      <span class="tag">MIT</span>
+      <span class="tag">Stanford</span>
+      <span class="tag">Duke</span>
+      <span class="tag">Penn</span>
+      <span class="tag">Institutional Finance</span>
+    </div>
+    <p class="story-body">
+      The "One Big Beautiful Bill Act" passed by Congress in July 2025 created a new three-tier endowment excise tax that takes effect this fiscal year. Per <a href="https://www.csmonitor.com/USA/Education/2026/0226/endowment-tax-higher-education-universities" target="_blank">The Christian Science Monitor</a>, <span title="Source: CS Monitor, Feb 26 2026">schools with endowments of $750,000 to $2 million per student will pay a 4% tax, and those with endowments of more than $2 million per student will pay 8%.</span> The American Enterprise Institute <a href="https://www.aei.org/education/how-much-will-universities-pay-in-endowment-tax/" target="_blank">estimates</a> that <span title="Source: AEI">Harvard could owe as much as $368 million in taxes, while Yale could owe $276 million. Princeton could face a $217 million tax bill, and Stanford $202 million.</span> In a notable development, the <a href="https://www.dailyprincetonian.com/article/2026/05/princeton-news-adpol-university-spared-endowment-tax-financial-aid-millions-princo" target="_blank">Daily Princetonian</a> reported this week that Princeton's investment company disclosed the university may be <span title="Source: Daily Princetonian, May 10 2026">exempt from the tax because its number of tuition-paying students falls under the 3,000-student threshold</span> -- a result of its recent expansion of financial aid. Yale's Graduate School dean confirmed the school is cutting doctoral admissions targets across the board in response. Stanford has already laid off 363 staff members and cut its operating budget by $140 million.
+    </p>
+    <div class="story-meta">Sources: Christian Science Monitor (Feb. 26, 2026) &bull; AEI (Jul. 14, 2025) &bull; Daily Princetonian (May 10, 2026) &bull; PBS NewsHour (Aug. 8, 2025)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown</strong>
+      Brown's endowment per student is well below the $500,000 threshold, so Brown is not subject to the new endowment tax. This is a meaningful financial advantage relative to wealthier peers. However, peers cutting doctoral programs and financial aid due to the tax could affect Brown's graduate recruitment landscape and the pipeline of teaching faculty.
+    </div>
+    <div class="compint-box">
+      <strong>Competitive Intelligence</strong>
+      Yale is cutting doctoral spots; Stanford has laid off staff; Harvard and MIT face nine-figure annual tax bills. Brown's relative financial stability -- combined with its Trump settlement -- may make it a more attractive destination for faculty and graduate students priced out of or destabilized by peer institutions. Brown's admission office should be aware that peer financial aid programs (especially Yale's new $0 tuition threshold for families under $100K) raise the competitive bar for affordability.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.csmonitor.com/USA/Education/2026/0226/endowment-tax-higher-education-universities" target="_blank">Read: CS Monitor</a> &bull; <a href="https://www.dailyprincetonian.com/article/2026/05/princeton-news-adpol-university-spared-endowment-tax-financial-aid-millions-princo" target="_blank">Princeton Exemption: The Princetonian</a></span>
+  </article>
+
+  <!-- ── STORY 5 ── -->
+  <article class="story-card urgency-high">
+    <div class="story-top">
+      <span class="urgency-badge high">High</span>
+      <span class="category-label">Legal / Federal Policy</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.insidehighered.com/news/government/courts/2026/04/03/lawsuits-against-trump-pile-strategies-shift" target="_blank">University Settlement Scorecard: Columbia Paid $221M, Cornell $60M, Brown $50M in Workforce Commitments; Harvard Alone Still Fighting</a>
+    </h2>
+    <div class="tags">
+      <span class="tag">Columbia</span>
+      <span class="tag brown">Brown</span>
+      <span class="tag">Cornell</span>
+      <span class="tag">Penn</span>
+      <span class="tag">Harvard</span>
+      <span class="tag">Dartmouth</span>
+      <span class="tag">Federal Policy</span>
+    </div>
+    <p class="story-body">
+      As of spring 2026, the landscape of university settlements with the Trump administration has largely crystallized. <a href="https://www.insidehighered.com/news/government/courts/2026/04/03/lawsuits-against-trump-pile-strategies-shift" target="_blank">Inside Higher Ed's</a> analysis notes that <span title="Source: Inside Higher Ed, Apr 3 2026">as of April 1, 50 out of 64 cases remain ongoing, and only 30 have reached appeals.</span> Columbia agreed to pay <span title="Source: Columbia Office of the President">a $200 million settlement to the federal government over three years, and $21 million to settle investigations involving the U.S. Equal Employment Opportunity Commission.</span> The Cornell Daily Sun confirmed <span title="Source: Cornell Daily Sun, Nov 2025">Cornell has agreed to give $30 million to the federal government and invest an additional $30 million into research to strengthen U.S. agriculture over the next three years,</span> restoring over $250 million in frozen funding. Per CNN, <span title="Source: CNN, Nov 7 2025">Brown University reached a deal in which it would pay Rhode Island workforce development organizations $50 million in grants over 10 years.</span> Penn settled by revising its transgender athlete policies without a cash payment. Fox News reported that <span title="Source: Fox News">President Donald Trump suspended federal funding to every Ivy League school except the University of Pennsylvania and Dartmouth College</span> amid the antisemitism investigations. Harvard remains the sole institution actively litigating against the administration.
+    </p>
+    <div class="story-meta">Sources: Inside Higher Ed (Apr. 3, 2026) &bull; Cornell Daily Sun (Nov. 7, 2025) &bull; Columbia Office of the President (Jul. 2025) &bull; PBS/AP (Jul. 2025)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown</strong>
+      Brown's settlement -- $50M to RI workforce development over 10 years -- was among the least financially burdensome of all Ivy settlements, and crucially preserved academic independence and admissions autonomy. This positions Brown favorably: federal investigations are closed, funding is flowing, and the university avoided the reputational cost of either capitulating (Columbia) or prolonged confrontation (Harvard). Brown Admission should be conversant in these distinctions when speaking to prospective students and families.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.insidehighered.com/news/government/courts/2026/04/03/lawsuits-against-trump-pile-strategies-shift" target="_blank">Read: Inside Higher Ed</a></span>
+  </article>
+
+  <!-- ── STORY 6 ── -->
+  <article class="story-card urgency-watch">
+    <div class="story-top">
+      <span class="urgency-badge watch">Watch</span>
+      <span class="category-label">Institutional Finance / Admissions</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://news.yale.edu/2026/01/27/yale-offer-free-tuition-families-incomes-below-200000" target="_blank">Yale Expands Financial Aid to Cover Full Tuition for Families Earning Under $200K, Effective Fall 2026</a>
+    </h2>
+    <div class="tags">
+      <span class="tag">Yale</span>
+      <span class="tag">Admissions</span>
+      <span class="tag">Financial Aid</span>
+    </div>
+    <p class="story-body">
+      In a January announcement that takes effect for the incoming Class of 2030, <a href="https://news.yale.edu/2026/01/27/yale-offer-free-tuition-families-incomes-below-200000" target="_blank">Yale announced</a> significant enhancements to its financial aid program. <span title="Source: Yale News, Jan 27 2026">The changes eliminate all expected costs for families with typical assets and annual incomes below $100,000 while also ensuring that families with typical assets and annual incomes below $200,000 receive need-based scholarships that meet or exceed the cost of tuition.</span> Yale reports that <span title="Source: Yale News">by raising the threshold to $100,000, nearly half of all American households with children ages 6-17 would now qualify for a financial aid package that does not require parents to contribute anything.</span> Under the new policy, <span title="Source: Yale News">more than 80% of American households would be eligible for a Yale scholarship covering at least the cost of tuition.</span> This announcement comes even as Yale simultaneously faces an estimated $280 million annual endowment tax burden and has implemented hiring slowdowns and doctoral admissions reductions.
+    </p>
+    <div class="story-meta">Source: Yale University News (Jan. 27, 2026)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown Admission</strong>
+      Yale's new $0-tuition threshold for families under $100K and tuition coverage up to $200K income is a direct competitive challenge for Brown in middle-income recruitment. Brown's current financial aid program covers 100% of demonstrated need but uses a different income-threshold framework. Brown Admission should audit its aid communication and net price messaging against Yale's new standard immediately. Families with incomes between $75K-$200K are now Yale's explicit target demographic.
+    </div>
+    <div class="compint-box">
+      <strong>Competitive Intelligence</strong>
+      This is the most significant peer financial aid expansion in the current cycle. Brown should assess whether its own financial aid benchmarks and messaging need to be updated in response. Notably, Yale is making this investment despite an 8% endowment tax looming -- a signal of competitive urgency around middle-income access.
+    </div>
+    <span class="source-link">&#8594; <a href="https://news.yale.edu/2026/01/27/yale-offer-free-tuition-families-incomes-below-200000" target="_blank">Read: Yale University News</a></span>
+  </article>
+
+  <!-- ── STORY 7 ── -->
+  <article class="story-card urgency-watch">
+    <div class="story-top">
+      <span class="urgency-badge watch">Watch</span>
+      <span class="category-label">Enrollment / Demography</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.collegedata.com/resources/getting-in/6-college-admission-trends-to-watch-in-2026" target="_blank">Enrollment Cliff Arrives: 18-Year-Old Population Begins Projected 15% Decline; Application Volume Still Growing at Selective Schools</a>
+    </h2>
+    <div class="tags">
+      <span class="tag">All Schools</span>
+      <span class="tag">Enrollment</span>
+      <span class="tag">Admissions Trends</span>
+    </div>
+    <p class="story-body">
+      The widely anticipated demographic contraction has arrived. According to <a href="https://www.collegedata.com/resources/getting-in/6-college-admission-trends-to-watch-in-2026" target="_blank">CollegeData</a>, <span title="Source: CollegeData, Jan 2026">2026 marks the beginning of a drop in the number of 18-year-olds in the U.S., a demographic shift dubbed the enrollment cliff, and the steepest declines are projected to drop by 15% by 2029.</span> However, Common App data from Pioneer Academics shows that <span title="Source: Pioneer Academics, 2026">Common App reported 1.43 million first-year applicants through March 1, 2026, a 2% increase year over year.</span> The divergence between a shrinking traditional-age population and rising application volumes at elite schools reflects what one analysis calls "application inflation," with <span title="Source: Pioneer Academics">a record high of 6.59 applications per student</span> putting strain on institutional resources. Selective institutions continue to see growing applicant pools due to global demand and Common App platform effects, while regional and smaller schools in the Midwest and Northeast are most exposed to the cliff.
+    </p>
+    <div class="story-meta">Sources: CollegeData (Jan. 2026) &bull; Pioneer Academics (Apr. 2026) &bull; Cengage/National Student Clearinghouse (Feb. 2026)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown Admission</strong>
+      Brown, as a highly selective institution, is partially insulated from the enrollment cliff -- domestic and international demand for Brown continues to outpace supply of seats. However, the cliff will reshape the geographic distribution and demographics of the pool over the next five years. Brown should accelerate recruitment in growing Sun Belt markets and among first-generation and lower-income students as the Northeastern high school graduate cohort shrinks.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.collegedata.com/resources/getting-in/6-college-admission-trends-to-watch-in-2026" target="_blank">Read: CollegeData</a></span>
+  </article>
+
+  <!-- ── STORY 8 ── -->
+  <article class="story-card urgency-watch">
+    <div class="story-top">
+      <span class="urgency-badge watch">Watch</span>
+      <span class="category-label">Institutional Finance / Research</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.nature.com/articles/d41586-026-00601-0" target="_blank">NIH and NSF Funding Slow to Flow Even After Congress Rejected Proposed 40-55% Cuts to Science Budgets</a>
+    </h2>
+    <div class="tags">
+      <span class="tag">Harvard</span>
+      <span class="tag brown">Brown</span>
+      <span class="tag">MIT</span>
+      <span class="tag">Stanford</span>
+      <span class="tag">Princeton</span>
+      <span class="tag">Cornell</span>
+      <span class="tag">Duke</span>
+      <span class="tag">Vanderbilt</span>
+      <span class="tag">Research Funding</span>
+    </div>
+    <p class="story-body">
+      In February, <a href="https://www.nature.com/articles/d41586-026-00601-0" target="_blank">Nature</a> reported that <span title="Source: Nature, Feb 27 2026">weeks after the US Congress rejected unprecedented cuts to science budgets that the administration of US President Donald Trump had sought for 2026, funding to several agencies that award research grants is still not freely flowing.</span> The White House had proposed slashing the NSF budget from $8.8 billion to $3.9 billion (a 56% cut) and cutting NIH by nearly 40%. While Congress rejected these proposals, the administration has used other levers -- including indirect cost caps at 15%, grant terminations, and agency reorganizations -- to constrain university research. The administration's FY2026 budget also proposed <span title="Source: AAU">setting the maximum Pell Grant award at $5,710 for the 2026-27 award year, a $1,685 decrease from the current maximum award,</span> and eliminating the Federal TRIO programs and Supplemental Educational Opportunity Grants entirely.
+    </p>
+    <div class="story-meta">Sources: Nature (Feb. 27, 2026) &bull; Inside Higher Ed (May 5, 2025) &bull; AAU (Jun. 2025)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown</strong>
+      Even with its settlement intact, Brown's research enterprise is subject to the same NIH/NSF indirect cost cap and grant uncertainty as every other research university. Brown's School of Public Health and Warren Alpert Medical School are particularly exposed to NIH variability. The proposed Pell Grant cut, if enacted in a future budget cycle, would directly affect Brown's low-income enrollment strategy. Monitor FY2027 budget negotiations closely.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.nature.com/articles/d41586-026-00601-0" target="_blank">Read: Nature</a></span>
+  </article>
+
+  <!-- ── STORY 9 ── -->
+  <article class="story-card urgency-info">
+    <div class="story-top">
+      <span class="urgency-badge info">Info</span>
+      <span class="category-label">Brown Campus / Commencement</span>
+    </div>
+    <h2 class="story-headline">
+      <a href="https://www.brown.edu/news/2026-05-08/honorary-degrees" target="_blank">Brown Commencement Weekend Set for May 22-24; Honorary Degrees Announced, New MPP Program Launches, $12M Economics Gift Received</a>
+    </h2>
+    <div class="tags">
+      <span class="tag brown">Brown</span>
+      <span class="tag">Institutional</span>
+      <span class="tag">Commencement</span>
+    </div>
+    <p class="story-body">
+      Brown's Commencement and Reunion Weekend is scheduled for May 22-24, 2026. The University has <a href="https://www.brown.edu/news/2026-05-08/honorary-degrees" target="_blank">announced</a> six honorary doctorate recipients, including Gen. Joseph F. Dunford Jr. (former Chairman of the Joint Chiefs of Staff) and Goldman Sachs Asset Management Chairman Richard A. Friedman '79, who also serves as secretary of Brown's Corporation. <span title="Source: Brown University, May 8 2026">Class of 1999 graduate Xochitl Gonzalez will address Class of 2026 undergraduates during the Baccalaureate service on Saturday, May 23.</span> In other Brown institutional news this week: the University launched a new <span title="Source: Brown University News, May 4 2026">master of public policy program with an emphasis on rigorous, data-driven analysis,</span> and in late April received <span title="Source: Brown University News, Apr 30 2026">a $12 million gift from the Bravo Family Foundation, founded by Brown alumnus Orlando Bravo, to bolster research and teaching in the Department of Economics and Watson School.</span>
+    </p>
+    <div class="story-meta">Sources: Brown University News (May 4-8, 2026) &bull; Brown Daily Herald (May 2026)</div>
+    <div class="implications-box">
+      <strong>Implications for Brown Admission</strong>
+      Commencement weekend is a key visibility event for prospective families and admitted students. The new MPP program strengthens Brown's policy and social science profile. The $12M Economics/Watson gift signals philanthropic momentum in high-demand disciplines. Admission staff should incorporate both developments into school profile and recruitment materials for the 2026-27 cycle.
+    </div>
+    <span class="source-link">&#8594; <a href="https://www.brown.edu/news/2026-05-08/honorary-degrees" target="_blank">Read: Brown University News</a> &bull; <a href="https://www.brown.edu/news/all" target="_blank">Brown All News</a></span>
+  </article>
+
+</main><!-- /stories-col -->
+
+
+<!-- ════════════════════════════ CENTER: SIDEBAR ════════════════════════════ -->
+<aside class="sidebar-col">
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Key Dates &amp; Deadlines</div>
+
+    <div class="key-date-item">
+      <div class="key-date-pill">MAY 12</div>
+      <div class="key-date-text"><strong>Today</strong>Brief published. Brown Commencement prep underway.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill">MAY 22-24</div>
+      <div class="key-date-text"><strong>Brown Commencement Weekend</strong>Baccalaureate May 23, Commencement May 24.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill gold">SUMMER</div>
+      <div class="key-date-text"><strong>Barus &amp; Holley Renovation</strong>Construction begins. Security camera expansion underway.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill gold">AUG 2026</div>
+      <div class="key-date-text"><strong>Brown Safety Review Results</strong>Teneo after-action review and security assessment results shared with campus.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill blue">FALL 2026</div>
+      <div class="key-date-text"><strong>Yale New Aid Takes Effect</strong>$0 tuition for families under $100K; tuition covered for families under $200K.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill blue">JUL 1 2026</div>
+      <div class="key-date-text"><strong>Endowment Tax Kicks In</strong>Harvard ($368M), Yale ($280M), Stanford ($202M) face first 8% tax bills.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill">DEC 2026</div>
+      <div class="key-date-text"><strong>Dec. 13 Memorial Committee Report</strong>Brown memorial committee recommendations due by end of fall semester.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill">DEC 31 2028</div>
+      <div class="key-date-text"><strong>Cornell Settlement Expires</strong>Cornell's $60M settlement agreement term ends.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill gold">ONGOING</div>
+      <div class="key-date-text"><strong>Harvard First Circuit Appeal</strong>160-page Trump admin brief filed. Ruling timeline TBD.</div>
+    </div>
+    <div class="key-date-item">
+      <div class="key-date-pill gold">SPRING 2026</div>
+      <div class="key-date-text"><strong>Harvard DOJ Response Due</strong>Harvard must respond to March 2026 DOJ Title VI lawsuit this spring.</div>
+    </div>
+  </div>
+
+  <!-- ═══ CHART 1 ═══ -->
+  <!-- AUDIT TRAIL:
+       Source: AEI, "How Much Will Universities Pay in Endowment Tax?"
+       URL: https://www.aei.org/education/how-much-will-universities-pay-in-endowment-tax/
+       Data points verbatim from AEI article:
+       - Harvard: "as much as $368 million"
+       - Yale: "Yale could owe $276 million" (Yale's own estimate ~$280M per other sources, AEI uses $276M)
+       - Princeton: "Princeton could face a $217 million tax bill"
+       - Stanford: "Stanford $202 million"
+       - MIT: "Over the next five years, these four schools, along with MIT, could pay more than one billion dollars apiece"
+         (MIT Year 1 figure not given individually; excluded from chart per NO SYNTHESIS rule)
+       Only Harvard, Yale, Princeton, Stanford are charted -- all from the single AEI source. MIT omitted.
+  -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Data Chart</div>
+    <div class="chart-box">
+      <div class="chart-title">Estimated FY2026 Endowment Tax Bill<br>(Year 1, 8% Tier, $M)</div>
+
+      <div class="bar-row">
+        <div class="bar-label">Harvard</div>
+        <div class="bar-track">
+          <div class="bar-fill crimson" style="width:100%"></div>
+        </div>
+        <div class="bar-val">$368M</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Yale</div>
+        <div class="bar-track">
+          <div class="bar-fill slate" style="width:75%"></div>
+        </div>
+        <div class="bar-val">$276M</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Princeton</div>
+        <div class="bar-track">
+          <div class="bar-fill forest" style="width:59%"></div>
+        </div>
+        <div class="bar-val">$217M</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Stanford</div>
+        <div class="bar-track">
+          <div class="bar-fill amber" style="width:55%"></div>
+        </div>
+        <div class="bar-val">$202M</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" style="font-size:0.63rem; color:#27ae60;">Brown</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:3%; background:#27ae60;"></div>
+        </div>
+        <div class="bar-val" style="color:#27ae60; font-size:0.63rem;">Exempt*</div>
+      </div>
+
+      <div class="chart-source">
+        *Brown's endowment per student is below the $500K threshold.<br>
+        Source: AEI, "How Much Will Universities Pay in Endowment Tax?" (Jul. 14, 2025).<br>
+        <a href="https://www.aei.org/education/how-much-will-universities-pay-in-endowment-tax/" target="_blank">aei.org</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settlement Tracker -->
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">University Settlement Tracker</div>
+    <!-- AUDIT TRAIL:
+         Source: Cornell Daily Sun, Nov 7 2025 + CNN Nov 7 2025 + PBS/AP Jul 24 2025 + Columbia Office of President
+         Columbia $221M: "Columbia will pay a $200 million settlement...and $21 million" (PBS/AP, Columbia.edu)
+         Cornell $60M: "Cornell has agreed to give $30 million to the federal government and invest an additional $30 million" (Cornell Daily Sun)
+         Brown $50M: "Brown University reached a deal in which it would pay Rhode Island workforce development organizations $50 million in grants over 10 years" (CNN/PBS)
+         Penn: "$175 million in formerly suspended federal funding" restored, no cash payment (Cornell Daily Sun)
+         Harvard: Still litigating (Inside Higher Ed, Apr 2026)
+    -->
+    <div class="chart-box">
+      <div class="chart-title">Ivy Settlement Amounts<br>(Financial Commitments, $M)</div>
+
+      <div class="bar-row">
+        <div class="bar-label">Columbia</div>
+        <div class="bar-track">
+          <div class="bar-fill slate" style="width:100%"></div>
+        </div>
+        <div class="bar-val">$221M</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Cornell</div>
+        <div class="bar-track">
+          <div class="bar-fill forest" style="width:27%"></div>
+        </div>
+        <div class="bar-val">$60M</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label" style="color:#6b2737; font-weight:700;">Brown</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:23%; background:#6b2737;"></div>
+        </div>
+        <div class="bar-val" style="color:#6b2737;">$50M*</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Penn</div>
+        <div class="bar-track">
+          <div class="bar-fill amber" style="width:5%"></div>
+        </div>
+        <div class="bar-val">$0**</div>
+      </div>
+      <div class="bar-row">
+        <div class="bar-label">Harvard</div>
+        <div class="bar-track">
+          <div class="bar-fill rust" style="width:8%"></div>
+        </div>
+        <div class="bar-val" style="color:#c0392b;">Litig.</div>
+      </div>
+
+      <div class="chart-source">
+        *Brown: $50M to RI workforce development over 10 years.<br>
+        **Penn: Policy concessions, no cash payment.<br>
+        Sources: Cornell Daily Sun (Nov. 7, 2025); PBS/AP (Jul. 24, 2025); CNN (Nov. 7, 2025); Columbia Office of the President.
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Urgency Legend</div>
+    <div style="font-size:0.73rem; font-family:Arial,sans-serif; line-height:2;">
+      <span class="urgency-badge breaking" style="margin-right:6px;">Breaking</span> Action required this week<br>
+      <span class="urgency-badge high" style="margin-right:6px;">High</span> Strategic impact, monitor closely<br>
+      <span class="urgency-badge watch" style="margin-right:6px;">Watch</span> Developing story, check weekly<br>
+      <span class="urgency-badge info" style="margin-right:6px;">Info</span> Background, situational awareness
+    </div>
+  </div>
+
+</aside><!-- /sidebar-col -->
+
+
+<!-- ════════════════════════════ RIGHT: ACCESS PANEL ════════════════════════════ -->
+<aside class="access-col">
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">News Access for Brown Employees</div>
+
+    <div class="access-link-item">
+      <a href="https://www.insidehighered.com" target="_blank">Inside Higher Ed</a>
+      <div class="access-link-desc">Free registration. Leading daily higher ed news and analysis.</div>
+    </div>
+    <hr class="access-divider"/>
+
+    <div class="access-link-item">
+      <a href="https://www.chronicle.com" target="_blank">Chronicle of Higher Education</a>
+      <div class="access-link-desc">Check with Brown Libraries for institutional access.</div>
+    </div>
+    <hr class="access-divider"/>
+
+    <div class="access-link-item">
+      <a href="https://library.brown.edu/eresources/nytimes.php" target="_blank">New York Times</a>
+      <div class="access-link-desc">Full access via Brown Libraries e-resources portal.</div>
+    </div>
+    <hr class="access-divider"/>
+
+    <div class="access-link-item">
+      <a href="https://library.brown.edu/eresources/wsjournal.php" target="_blank">Wall Street Journal</a>
+      <div class="access-link-desc">Full access via Brown Libraries e-resources portal.</div>
+    </div>
+    <hr class="access-divider"/>
+
+    <div class="access-link-item">
+      <a href="https://www.ft.com" target="_blank">Financial Times</a>
+      <div class="access-link-desc">Check Brown Libraries for institutional FT access.</div>
+    </div>
+    <hr class="access-divider"/>
+
+    <div class="access-link-item">
+      <a href="https://www.theatlantic.com/brownuniversity-login/" target="_blank">The Atlantic</a>
+      <div class="access-link-desc">Full access via Brown University login at The Atlantic.</div>
+    </div>
+    <hr class="access-divider"/>
+
+    <div class="access-link-item">
+      <a href="https://libguides.brown.edu/newspapers" target="_blank">All Brown Academic News Passes</a>
+      <div class="access-link-desc">Full directory of Brown Library newspaper and media database access.</div>
+    </div>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Student Press Feeds</div>
+    <div class="access-link-item">
+      <a href="https://www.browndailyherald.com" target="_blank">Brown Daily Herald</a>
+      <div class="access-link-desc">On summer break; continuing to publish breaking news.</div>
+    </div>
+    <div class="access-link-item">
+      <a href="https://www.thecrimson.com" target="_blank">Harvard Crimson</a>
+    </div>
+    <div class="access-link-item">
+      <a href="https://yaledailynews.com" target="_blank">Yale Daily News</a>
+    </div>
+    <div class="access-link-item">
+      <a href="https://www.dailyprincetonian.com" target="_blank">Daily Princetonian</a>
+    </div>
+    <div class="access-link-item">
+      <a href="https://www.columbiaspectator.com" target="_blank">Columbia Spectator</a>
+    </div>
+    <div class="access-link-item">
+      <a href="https://cornellsun.com" target="_blank">Cornell Daily Sun</a>
+    </div>
+    <div class="access-link-item">
+      <a href="https://www.thedp.com" target="_blank">Daily Pennsylvanian</a>
+    </div>
+    <div class="access-link-item">
+      <a href="https://www.t
