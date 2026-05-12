@@ -16,40 +16,37 @@ jobs:
       - name: Generate content (JSON)
         run: |
           echo "Calling Claude API to generate daily content..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
+          HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
             -d @generate-prompt.json)
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
           echo "HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "API call failed with status $HTTP_CODE"
-            echo "Error: $(echo $BODY | head -c 500)"
+            cat response.json | head -c 500
             exit 1
           fi
-          echo "$BODY" | python3 << 'PYEOF'
-          import sys, json, re
+          python3 << 'PYEOF'
+          import json, re
 
-          data = json.load(sys.stdin)
+          with open('response.json') as f:
+            data = json.load(f)
+
           text = ''.join(b.get('text','') for b in data.get('content',[]))
 
-          # Strategy: find the outermost { } pair that contains valid JSON
-          # First strip code fences
+          # Strip code fences and find JSON
           text = re.sub(r'```json\s*', '', text)
           text = re.sub(r'```\s*', '', text)
+          first = text.find('{')
+          last = text.rfind('}')
 
-          # Find the first { and last }
-          first_brace = text.find('{')
-          last_brace = text.rfind('}')
-
-          if first_brace == -1 or last_brace == -1:
+          if first == -1 or last == -1:
             print("ERROR: No JSON object found in response")
             print(f"Response preview: {text[:500]}")
-            sys.exit(1)
+            exit(1)
 
-          json_str = text[first_brace:last_brace + 1]
+          json_str = text[first:last + 1]
 
           try:
             parsed = json.loads(json_str)
@@ -61,7 +58,7 @@ jobs:
           except json.JSONDecodeError as e:
             print(f'ERROR: JSON parse failed: {e}')
             print(f'JSON preview: {json_str[:500]}')
-            sys.exit(1)
+            exit(1)
           PYEOF
 
       - name: Wait for rate limit reset
@@ -90,21 +87,20 @@ jobs:
           print(f"Verification request built: {len(items)} items to check")
           PYEOF
           echo "Calling Claude API to verify links..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
+          HTTP_CODE=$(curl -s -o verify_response.json -w "%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
             -d @verify_request.json)
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
           echo "Verify HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "Verification failed with status $HTTP_CODE. Publishing unverified."
             echo '{"remove":[],"fix_urls":{}}' > corrections.json
           else
-            echo "$BODY" | python3 << 'PYEOF'
-          import sys, json, re
-          data = json.load(sys.stdin)
+            python3 << 'PYEOF'
+          import json, re
+          with open('verify_response.json') as f:
+            data = json.load(f)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
           text = re.sub(r'```json\s*', '', text)
           text = re.sub(r'```\s*', '', text)
@@ -116,7 +112,7 @@ jobs:
               with open('corrections.json','w') as f: json.dump(c, f)
               print(f'Corrections: {c}')
             except:
-              print(f'Parse failed, skipping corrections')
+              print('Parse failed, skipping corrections')
               with open('corrections.json','w') as f: f.write('{"remove":[],"fix_urls":{}}')
           else:
             with open('corrections.json','w') as f: f.write('{"remove":[],"fix_urls":{}}')
