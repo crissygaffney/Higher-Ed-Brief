@@ -29,26 +29,40 @@ jobs:
             echo "Error: $(echo $BODY | head -c 500)"
             exit 1
           fi
-          echo "$BODY" | python3 -c "
+          echo "$BODY" | python3 << 'PYEOF'
           import sys, json, re
+
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-          # Strip markdown code fences
-          text = re.sub(r'^\s*\`\`\`json?\s*\n?', '', text)
-          text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
-          text = text.strip()
+
+          # Strategy: find the outermost { } pair that contains valid JSON
+          # First strip code fences
+          text = re.sub(r'```json\s*', '', text)
+          text = re.sub(r'```\s*', '', text)
+
+          # Find the first { and last }
+          first_brace = text.find('{')
+          last_brace = text.rfind('}')
+
+          if first_brace == -1 or last_brace == -1:
+            print("ERROR: No JSON object found in response")
+            print(f"Response preview: {text[:500]}")
+            sys.exit(1)
+
+          json_str = text[first_brace:last_brace + 1]
+
           try:
-            parsed = json.loads(text)
-            with open('daily_data.json','w') as f: json.dump(parsed, f)
-            stories = len(parsed.get('todayStories',[])) + len(parsed.get('archiveStories',[]))
-            charts = len(parsed.get('charts',[]))
+            parsed = json.loads(json_str)
+            with open('daily_data.json', 'w') as f:
+              json.dump(parsed, f)
+            stories = len(parsed.get('todayStories', [])) + len(parsed.get('archiveStories', []))
+            charts = len(parsed.get('charts', []))
             print(f'Success: {stories} stories, {charts} charts generated')
           except json.JSONDecodeError as e:
-            print(f'ERROR: Could not parse JSON response')
-            print(f'Parse error: {e}')
-            print(f'Response preview: {text[:500]}')
+            print(f'ERROR: JSON parse failed: {e}')
+            print(f'JSON preview: {json_str[:500]}')
             sys.exit(1)
-          "
+          PYEOF
 
       - name: Wait for rate limit reset
         run: |
@@ -60,7 +74,6 @@ jobs:
           python3 << 'PYEOF'
           import json
           with open('daily_data.json') as f: data = json.load(f)
-          # Extract just URLs and headlines for verification (compact)
           items = []
           for s in data.get('todayStories', []) + data.get('archiveStories', []):
             items.append({"id": s.get("id"), "url": s.get("sourceUrl",""), "headline": s.get("headline",""), "source": s.get("source","")})
@@ -70,7 +83,7 @@ jobs:
             "model": "claude-sonnet-4-6",
             "max_tokens": 4000,
             "tools": [{"type": "web_search_20250305", "name": "web_search"}],
-            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences.",
+            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences, no preamble text.",
             "messages": [{"role": "user", "content": "Verify these URLs. Return JSON: {\"remove\": [list of id values to remove], \"fix_urls\": {\"old_url\": \"new_url\"}}. If all pass: {\"remove\":[], \"fix_urls\":{}}.\n\n" + json.dumps(items, indent=2)}]
           }
           with open('verify_request.json', 'w') as f: json.dump(req, f)
@@ -86,24 +99,28 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
           echo "Verify HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "Verification failed with status $HTTP_CODE. Publishing unverified content."
+            echo "Verification failed with status $HTTP_CODE. Publishing unverified."
             echo '{"remove":[],"fix_urls":{}}' > corrections.json
           else
-            echo "$BODY" | python3 -c "
+            echo "$BODY" | python3 << 'PYEOF'
           import sys, json, re
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-          text = re.sub(r'^\s*\`\`\`json?\s*\n?', '', text)
-          text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
-          text = text.strip()
-          try:
-            c = json.loads(text)
-            with open('corrections.json','w') as f: json.dump(c, f)
-            print(f'Corrections: {c}')
-          except:
-            print(f'Could not parse corrections: {text[:300]}')
-            with open('corrections.json','w') as f: f.write('{\"remove\":[],\"fix_urls\":{}}')
-          "
+          text = re.sub(r'```json\s*', '', text)
+          text = re.sub(r'```\s*', '', text)
+          first = text.find('{')
+          last = text.rfind('}')
+          if first != -1 and last != -1:
+            try:
+              c = json.loads(text[first:last+1])
+              with open('corrections.json','w') as f: json.dump(c, f)
+              print(f'Corrections: {c}')
+            except:
+              print(f'Parse failed, skipping corrections')
+              with open('corrections.json','w') as f: f.write('{"remove":[],"fix_urls":{}}')
+          else:
+            with open('corrections.json','w') as f: f.write('{"remove":[],"fix_urls":{}}')
+          PYEOF
           fi
 
       - name: Apply corrections and build dashboard
