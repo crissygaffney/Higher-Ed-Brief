@@ -13,9 +13,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate dashboard
+      - name: Generate content (JSON)
         run: |
-          echo "Calling Claude API to generate dashboard..."
+          echo "Calling Claude API to generate daily content..."
           RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
@@ -26,123 +26,68 @@ jobs:
           echo "HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "API call failed with status $HTTP_CODE"
-            echo "Error: $BODY"
+            echo "Error: $(echo $BODY | head -c 500)"
             exit 1
           fi
           echo "$BODY" | python3 -c "
           import sys, json, re
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-          text = re.sub(r'^\s*\`\`\`html?\s*\n?', '', text)
-          text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
-          text = text.strip()
-          start = text.find('<!DOCTYPE')
-          if start == -1: start = text.find('<html')
-          if start == -1: start = text.find('<!')
-          if start == -1:
-            print('ERROR: No HTML found in response')
-            print('Response preview:', text[:500])
-            sys.exit(1)
-          html = text[start:]
-          with open('generated.html','w') as f: f.write(html)
-          print(f'Success: generated.html written with {len(html)} characters')"
-
-      - name: Extract data for verification
-        run: |
-          python3 << 'PYEOF'
-          import re, json
-          with open('generated.html') as f: html = f.read()
-          stories = []
-          urls = re.findall(r'sourceUrl:\s*"(https?://[^"]+)"', html)
-          headlines = re.findall(r'headline:\s*"([^"]+)"', html)
-          for i in range(len(urls)):
-            stories.append({"id": i, "url": urls[i], "headline": headlines[i] if i < len(headlines) else ""})
-          charts = []
-          chart_links = re.findall(r'chart-link.*?href="(https?://[^"]+)"', html)
-          chart_titles = re.findall(r'chart-title">([^<]+)<', html)
-          for i in range(len(chart_links)):
-            charts.append({"id": i, "url": chart_links[i], "title": chart_titles[i] if i < len(chart_titles) else ""})
-          mid = len(stories) // 2
-          with open('batch_a.json','w') as f: json.dump({"stories": stories[:mid], "charts": charts[:2]}, f)
-          with open('batch_b.json','w') as f: json.dump({"stories": stories[mid:], "charts": charts[2:]}, f)
-          print(f'Extracted {len(stories)} stories, {len(charts)} charts. Split into 2 batches.')
-          PYEOF
-
-      - name: Verify batch A
-        run: |
-          python3 << 'PYEOF'
-          import json
-          with open('batch_a.json') as f: batch = json.load(f)
-          req = {
-            "model": "claude-sonnet-4-6",
-            "max_tokens": 4000,
-            "tools": [{"type": "web_search_20250305", "name": "web_search"}],
-            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences, no explanation.",
-            "messages": [{"role": "user", "content": "Verify these URLs. Return JSON: {\"remove_stories\": [id numbers], \"fix_urls\": {\"old_url\": \"new_url\"}, \"remove_charts\": [id numbers]}. If all pass: {\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}.\n\n" + json.dumps(batch, indent=2)}]
-          }
-          with open('req_a.json','w') as f: json.dump(req, f)
-          PYEOF
-          echo "Verifying batch A..."
-          RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
-            -H 'Content-Type: application/json' \
-            -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
-            -H 'anthropic-version: 2023-06-01' \
-            -d @req_a.json)
-          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
-          echo "Batch A HTTP Status: $HTTP_CODE"
-          if [ "$HTTP_CODE" != "200" ]; then
-            echo "Batch A failed: $(echo $BODY | head -c 300)"
-            echo '{"remove_stories":[],"fix_urls":{},"remove_charts":[]}' > corr_a.json
-          else
-            echo "$BODY" | python3 -c "
-          import sys, json, re
-          data = json.load(sys.stdin)
-          text = ''.join(b.get('text','') for b in data.get('content',[]))
+          # Strip markdown code fences
           text = re.sub(r'^\s*\`\`\`json?\s*\n?', '', text)
           text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
           text = text.strip()
           try:
-            c = json.loads(text)
-            with open('corr_a.json','w') as f: json.dump(c, f)
-            print(f'Batch A: {c}')
-          except:
-            print(f'Parse failed, skipping. Got: {text[:200]}')
-            with open('corr_a.json','w') as f: f.write('{\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}')
+            parsed = json.loads(text)
+            with open('daily_data.json','w') as f: json.dump(parsed, f)
+            stories = len(parsed.get('todayStories',[])) + len(parsed.get('archiveStories',[]))
+            charts = len(parsed.get('charts',[]))
+            print(f'Success: {stories} stories, {charts} charts generated')
+          except json.JSONDecodeError as e:
+            print(f'ERROR: Could not parse JSON response')
+            print(f'Parse error: {e}')
+            print(f'Response preview: {text[:500]}')
+            sys.exit(1)
           "
-          fi
 
       - name: Wait for rate limit reset
         run: |
           echo "Waiting 3 minutes..."
           sleep 180
 
-      - name: Verify batch B
+      - name: Verify content
         run: |
           python3 << 'PYEOF'
           import json
-          with open('batch_b.json') as f: batch = json.load(f)
+          with open('daily_data.json') as f: data = json.load(f)
+          # Extract just URLs and headlines for verification (compact)
+          items = []
+          for s in data.get('todayStories', []) + data.get('archiveStories', []):
+            items.append({"id": s.get("id"), "url": s.get("sourceUrl",""), "headline": s.get("headline",""), "source": s.get("source","")})
+          for i, c in enumerate(data.get('charts', [])):
+            items.append({"id": f"chart_{i}", "url": c.get("sourceUrl",""), "headline": c.get("title",""), "source": c.get("sourceText","")})
           req = {
             "model": "claude-sonnet-4-6",
             "max_tokens": 4000,
             "tools": [{"type": "web_search_20250305", "name": "web_search"}],
-            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences, no explanation.",
-            "messages": [{"role": "user", "content": "Verify these URLs. Return JSON: {\"remove_stories\": [id numbers], \"fix_urls\": {\"old_url\": \"new_url\"}, \"remove_charts\": [id numbers]}. If all pass: {\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}.\n\n" + json.dumps(batch, indent=2)}]
+            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences.",
+            "messages": [{"role": "user", "content": "Verify these URLs. Return JSON: {\"remove\": [list of id values to remove], \"fix_urls\": {\"old_url\": \"new_url\"}}. If all pass: {\"remove\":[], \"fix_urls\":{}}.\n\n" + json.dumps(items, indent=2)}]
           }
-          with open('req_b.json','w') as f: json.dump(req, f)
+          with open('verify_request.json', 'w') as f: json.dump(req, f)
+          print(f"Verification request built: {len(items)} items to check")
           PYEOF
-          echo "Verifying batch B..."
+          echo "Calling Claude API to verify links..."
           RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
-            -d @req_b.json)
+            -d @verify_request.json)
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | sed '$d')
-          echo "Batch B HTTP Status: $HTTP_CODE"
+          echo "Verify HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "Batch B failed: $(echo $BODY | head -c 300)"
-            echo '{"remove_stories":[],"fix_urls":{},"remove_charts":[]}' > corr_b.json
+            echo "Verification failed with status $HTTP_CODE. Publishing unverified content."
+            echo '{"remove":[],"fix_urls":{}}' > corrections.json
           else
             echo "$BODY" | python3 -c "
           import sys, json, re
@@ -153,33 +98,52 @@ jobs:
           text = text.strip()
           try:
             c = json.loads(text)
-            with open('corr_b.json','w') as f: json.dump(c, f)
-            print(f'Batch B: {c}')
+            with open('corrections.json','w') as f: json.dump(c, f)
+            print(f'Corrections: {c}')
           except:
-            print(f'Parse failed, skipping. Got: {text[:200]}')
-            with open('corr_b.json','w') as f: f.write('{\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}')
+            print(f'Could not parse corrections: {text[:300]}')
+            with open('corrections.json','w') as f: f.write('{\"remove\":[],\"fix_urls\":{}}')
           "
           fi
 
-      - name: Apply corrections
+      - name: Apply corrections and build dashboard
         run: |
           python3 << 'PYEOF'
           import json
-          with open('generated.html') as f: html = f.read()
-          with open('corr_a.json') as f: ca = json.load(f)
-          with open('corr_b.json') as f: cb = json.load(f)
-          fixes = {**ca.get('fix_urls',{}), **cb.get('fix_urls',{})}
-          for old, new in fixes.items():
-            if old and new:
-              html = html.replace(old, new)
-              print(f'Fixed: {old} -> {new}')
-          removes = ca.get('remove_stories',[]) + cb.get('remove_stories',[])
-          chart_removes = ca.get('remove_charts',[]) + cb.get('remove_charts',[])
-          if removes: print(f'Stories flagged for removal: {removes}')
-          if chart_removes: print(f'Charts flagged for removal: {chart_removes}')
-          print(f'Applied {len(fixes)} URL fixes')
-          with open('index.html','w') as f: f.write(html)
-          print(f'Dashboard written: {len(html)} chars')
+
+          with open('daily_data.json') as f: data = json.load(f)
+          with open('corrections.json') as f: corr = json.load(f)
+
+          # Apply URL fixes
+          fixes = corr.get('fix_urls', {})
+          if fixes:
+            data_str = json.dumps(data)
+            for old, new in fixes.items():
+              if old and new:
+                data_str = data_str.replace(old, new)
+                print(f'Fixed URL: {old} -> {new}')
+            data = json.loads(data_str)
+
+          # Remove flagged items
+          remove_ids = corr.get('remove', [])
+          if remove_ids:
+            data['todayStories'] = [s for s in data.get('todayStories',[]) if s.get('id') not in remove_ids]
+            data['archiveStories'] = [s for s in data.get('archiveStories',[]) if s.get('id') not in remove_ids]
+            chart_removes = [r for r in remove_ids if isinstance(r, str) and r.startswith('chart_')]
+            if chart_removes:
+              chart_indices = [int(r.split('_')[1]) for r in chart_removes]
+              data['charts'] = [c for i, c in enumerate(data.get('charts',[])) if i not in chart_indices]
+            print(f'Removed {len(remove_ids)} items')
+
+          # Inject data into template
+          with open('template.html') as f: template = f.read()
+          data_json = json.dumps(data)
+          html = template.replace('/*INJECT_DATA*/null', data_json)
+          with open('index.html', 'w') as f: f.write(html)
+
+          stories = len(data.get('todayStories',[])) + len(data.get('archiveStories',[]))
+          charts = len(data.get('charts',[]))
+          print(f'Dashboard built: {stories} stories, {charts} charts, {len(html)} chars')
           PYEOF
 
       - name: Publish
