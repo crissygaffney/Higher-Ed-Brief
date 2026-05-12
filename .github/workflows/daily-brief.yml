@@ -2,8 +2,8 @@ name: Daily Higher Ed Brief
 
 on:
   schedule:
-    - cron: '0 10 * * 1-5'  # 6 AM ET (10 UTC) weekdays
-  workflow_dispatch:  # allows manual trigger
+    - cron: '0 10 * * 1-5'
+  workflow_dispatch:
 
 jobs:
   generate-brief:
@@ -33,7 +33,6 @@ jobs:
           import sys, json, re
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-          # Strip markdown code fences if present
           text = re.sub(r'^\s*\`\`\`html?\s*\n?', '', text)
           text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
           text = text.strip()
@@ -48,53 +47,140 @@ jobs:
           with open('generated.html','w') as f: f.write(html)
           print(f'Success: generated.html written with {len(html)} characters')"
 
-      - name: Wait for rate limit reset
+      - name: Extract data for verification
         run: |
-          echo "Waiting 3 minutes for rate limit to reset..."
-          sleep 180
-
-      - name: Verify dashboard
-        run: |
-          echo "Building verification request..."
-          python3 -c "
-          import json
+          python3 << 'PYEOF'
+          import re, json
           with open('generated.html') as f: html = f.read()
-          with open('verify-prompt-template.json') as f: tmpl = json.load(f)
-          tmpl['messages'][0]['content'] = tmpl['messages'][0]['content'].replace('{{HTML}}', html)
-          with open('verify-request.json','w') as f: json.dump(tmpl, f)
-          print(f'Verification request built: {len(html)} chars of HTML to verify')"
-          echo "Calling Claude API to verify dashboard..."
+          stories = []
+          urls = re.findall(r'sourceUrl:\s*"(https?://[^"]+)"', html)
+          headlines = re.findall(r'headline:\s*"([^"]+)"', html)
+          for i in range(len(urls)):
+            stories.append({"id": i, "url": urls[i], "headline": headlines[i] if i < len(headlines) else ""})
+          charts = []
+          chart_links = re.findall(r'chart-link.*?href="(https?://[^"]+)"', html)
+          chart_titles = re.findall(r'chart-title">([^<]+)<', html)
+          for i in range(len(chart_links)):
+            charts.append({"id": i, "url": chart_links[i], "title": chart_titles[i] if i < len(chart_titles) else ""})
+          mid = len(stories) // 2
+          with open('batch_a.json','w') as f: json.dump({"stories": stories[:mid], "charts": charts[:2]}, f)
+          with open('batch_b.json','w') as f: json.dump({"stories": stories[mid:], "charts": charts[2:]}, f)
+          print(f'Extracted {len(stories)} stories, {len(charts)} charts. Split into 2 batches.')
+          PYEOF
+
+      - name: Verify batch A
+        run: |
+          python3 << 'PYEOF'
+          import json
+          with open('batch_a.json') as f: batch = json.load(f)
+          req = {
+            "model": "claude-sonnet-4-6",
+            "max_tokens": 4000,
+            "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences, no explanation.",
+            "messages": [{"role": "user", "content": "Verify these URLs. Return JSON: {\"remove_stories\": [id numbers], \"fix_urls\": {\"old_url\": \"new_url\"}, \"remove_charts\": [id numbers]}. If all pass: {\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}.\n\n" + json.dumps(batch, indent=2)}]
+          }
+          with open('req_a.json','w') as f: json.dump(req, f)
+          PYEOF
+          echo "Verifying batch A..."
           RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
-            -d @verify-request.json)
+            -d @req_a.json)
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | sed '$d')
-          echo "HTTP Status: $HTTP_CODE"
+          echo "Batch A HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "API call failed with status $HTTP_CODE"
-            echo "Error: $BODY"
-            exit 1
-          fi
-          echo "$BODY" | python3 -c "
+            echo "Batch A failed: $(echo $BODY | head -c 300)"
+            echo '{"remove_stories":[],"fix_urls":{},"remove_charts":[]}' > corr_a.json
+          else
+            echo "$BODY" | python3 -c "
           import sys, json, re
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-          # Strip markdown code fences if present
-          text = re.sub(r'^\s*\`\`\`html?\s*\n?', '', text)
+          text = re.sub(r'^\s*\`\`\`json?\s*\n?', '', text)
           text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
           text = text.strip()
-          start = text.find('<!DOCTYPE')
-          if start == -1: start = text.find('<html')
-          if start == -1: start = text.find('<!')
-          if start == -1:
-            print('ERROR: No HTML found in verified response')
-            print('Response preview:', text[:500])
-            sys.exit(1)
-          html = text[start:]
+          try:
+            c = json.loads(text)
+            with open('corr_a.json','w') as f: json.dump(c, f)
+            print(f'Batch A: {c}')
+          except:
+            print(f'Parse failed, skipping. Got: {text[:200]}')
+            with open('corr_a.json','w') as f: f.write('{\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}')
+          "
+          fi
+
+      - name: Wait for rate limit reset
+        run: |
+          echo "Waiting 3 minutes..."
+          sleep 180
+
+      - name: Verify batch B
+        run: |
+          python3 << 'PYEOF'
+          import json
+          with open('batch_b.json') as f: batch = json.load(f)
+          req = {
+            "model": "claude-sonnet-4-6",
+            "max_tokens": 4000,
+            "tools": [{"type": "web_search_20250305", "name": "web_search"}],
+            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences, no explanation.",
+            "messages": [{"role": "user", "content": "Verify these URLs. Return JSON: {\"remove_stories\": [id numbers], \"fix_urls\": {\"old_url\": \"new_url\"}, \"remove_charts\": [id numbers]}. If all pass: {\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}.\n\n" + json.dumps(batch, indent=2)}]
+          }
+          with open('req_b.json','w') as f: json.dump(req, f)
+          PYEOF
+          echo "Verifying batch B..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
+            -H 'Content-Type: application/json' \
+            -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
+            -H 'anthropic-version: 2023-06-01' \
+            -d @req_b.json)
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          echo "Batch B HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Batch B failed: $(echo $BODY | head -c 300)"
+            echo '{"remove_stories":[],"fix_urls":{},"remove_charts":[]}' > corr_b.json
+          else
+            echo "$BODY" | python3 -c "
+          import sys, json, re
+          data = json.load(sys.stdin)
+          text = ''.join(b.get('text','') for b in data.get('content',[]))
+          text = re.sub(r'^\s*\`\`\`json?\s*\n?', '', text)
+          text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
+          text = text.strip()
+          try:
+            c = json.loads(text)
+            with open('corr_b.json','w') as f: json.dump(c, f)
+            print(f'Batch B: {c}')
+          except:
+            print(f'Parse failed, skipping. Got: {text[:200]}')
+            with open('corr_b.json','w') as f: f.write('{\"remove_stories\":[],\"fix_urls\":{},\"remove_charts\":[]}')
+          "
+          fi
+
+      - name: Apply corrections
+        run: |
+          python3 << 'PYEOF'
+          import json
+          with open('generated.html') as f: html = f.read()
+          with open('corr_a.json') as f: ca = json.load(f)
+          with open('corr_b.json') as f: cb = json.load(f)
+          fixes = {**ca.get('fix_urls',{}), **cb.get('fix_urls',{})}
+          for old, new in fixes.items():
+            if old and new:
+              html = html.replace(old, new)
+              print(f'Fixed: {old} -> {new}')
+          removes = ca.get('remove_stories',[]) + cb.get('remove_stories',[])
+          chart_removes = ca.get('remove_charts',[]) + cb.get('remove_charts',[])
+          if removes: print(f'Stories flagged for removal: {removes}')
+          if chart_removes: print(f'Charts flagged for removal: {chart_removes}')
+          print(f'Applied {len(fixes)} URL fixes')
           with open('index.html','w') as f: f.write(html)
-          print(f'Success: index.html written with {len(html)} characters')"
+          print(f'Dashboard written: {len(html)} chars')
+          PYEOF
 
       - name: Publish
         run: |
