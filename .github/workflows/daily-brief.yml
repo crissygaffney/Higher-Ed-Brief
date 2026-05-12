@@ -50,8 +50,8 @@ jobs:
 
       - name: Wait for rate limit reset
         run: |
-          echo "Waiting 90 seconds for rate limit to reset..."
-          sleep 90
+          echo "Waiting 3 minutes for rate limit to reset..."
+          sleep 180
 
       - name: Verify dashboard
         run: |
