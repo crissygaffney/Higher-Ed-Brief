@@ -1,49 +1,96 @@
 name: Daily Higher Ed Brief
+
 on:
   schedule:
     - cron: '0 10 * * 1-5'  # 6 AM ET (10 UTC) weekdays
-  workflow_dispatch:  # manual trigger
- 
+  workflow_dispatch:  # allows manual trigger
+
 jobs:
   generate-brief:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+
       - name: Generate dashboard
         run: |
-          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+          echo "Calling Claude API to generate dashboard..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
             -d @generate-prompt.json)
-          echo "$RESPONSE" | python3 -c "
-          import sys, json
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          echo "HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "API call failed with status $HTTP_CODE"
+            echo "Error: $BODY"
+            exit 1
+          fi
+          echo "$BODY" | python3 -c "
+          import sys, json, re
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-          start = text.find('<!DOCTYPE') if '<!DOCTYPE' in text else text.find('<html')
-          if start == -1: start = 0
-          with open('generated.html','w') as f: f.write(text[start:])"
+          # Strip markdown code fences if present
+          text = re.sub(r'^\s*\`\`\`html?\s*\n?', '', text)
+          text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
+          text = text.strip()
+          start = text.find('<!DOCTYPE')
+          if start == -1: start = text.find('<html')
+          if start == -1: start = text.find('<!')
+          if start == -1:
+            print('ERROR: No HTML found in response')
+            print('Response preview:', text[:500])
+            sys.exit(1)
+          html = text[start:]
+          with open('generated.html','w') as f: f.write(html)
+          print(f'Success: generated.html written with {len(html)} characters')"
+
       - name: Verify dashboard
         run: |
+          echo "Building verification request..."
           python3 -c "
           import json
           with open('generated.html') as f: html = f.read()
           with open('verify-prompt-template.json') as f: tmpl = json.load(f)
-          msg = tmpl['messages'][0]['content'].replace('{{HTML}}', html)
-          tmpl['messages'][0]['content'] = msg
-          with open('verify-request.json','w') as f: json.dump(tmpl, f)"
-          RESPONSE=$(curl -s https://api.anthropic.com/v1/messages \
+          tmpl['messages'][0]['content'] = tmpl['messages'][0]['content'].replace('{{HTML}}', html)
+          with open('verify-request.json','w') as f: json.dump(tmpl, f)
+          print(f'Verification request built: {len(html)} chars of HTML to verify')"
+          echo "Calling Claude API to verify dashboard..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
             -d @verify-request.json)
-          echo "$RESPONSE" | python3 -c "
-          import sys, json
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          echo "HTTP Status: $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "API call failed with status $HTTP_CODE"
+            echo "Error: $BODY"
+            exit 1
+          fi
+          echo "$BODY" | python3 -c "
+          import sys, json, re
           data = json.load(sys.stdin)
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-          start = text.find('<!DOCTYPE') if '<!DOCTYPE' in text else text.find('<html')
-          if start == -1: start = 0
-          with open('index.html','w') as f: f.write(text[start:])"
+          # Strip markdown code fences if present
+          text = re.sub(r'^\s*\`\`\`html?\s*\n?', '', text)
+          text = re.sub(r'\n?\s*\`\`\`\s*$', '', text)
+          text = text.strip()
+          start = text.find('<!DOCTYPE')
+          if start == -1: start = text.find('<html')
+          if start == -1: start = text.find('<!')
+          if start == -1:
+            print('ERROR: No HTML found in verified response')
+            print('Response preview:', text[:500])
+            sys.exit(1)
+          html = text[start:]
+          with open('index.html','w') as f: f.write(html)
+          print(f'Success: index.html written with {len(html)} characters')"
+
       - name: Publish
         run: |
           git config user.name 'github-actions'
