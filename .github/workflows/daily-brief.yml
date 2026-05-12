@@ -48,6 +48,11 @@ jobs:
           with open('generated.html','w') as f: f.write(html)
           print(f'Success: generated.html written with {len(html)} characters')"
 
+      - name: Wait for rate limit reset
+        run: |
+          echo "Waiting 90 seconds for rate limit to reset..."
+          sleep 90
+
       - name: Verify dashboard
         run: |
           echo "Building verification request..."
