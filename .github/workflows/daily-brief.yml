@@ -2,7 +2,7 @@ name: Daily Higher Ed Brief
 
 on:
   schedule:
-    - cron: '0 10 * * 1-5'
+    - cron: '0 5 * * 1-5'  # 1 AM ET (5 UTC) - early buffer for GitHub delays
   workflow_dispatch:
 
 jobs:
@@ -13,51 +13,61 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Generate content (JSON)
+      - name: Determine update type
+        id: daycheck
         run: |
-          echo "Calling Claude API to generate daily content..."
+          DAY=$(date -u +%u)
+          if [ "$DAY" = "1" ]; then
+            echo "type=full" >> $GITHUB_OUTPUT
+            echo "Today is Monday: FULL update (stories + charts + dates + stats)"
+          else
+            echo "type=daily" >> $GITHUB_OUTPUT
+            echo "Today is weekday: STORIES-ONLY update"
+          fi
+
+      - name: Generate content
+        run: |
+          if [ "${{ steps.daycheck.outputs.type }}" = "full" ]; then
+            PROMPT_FILE="generate-prompt-full.json"
+          else
+            PROMPT_FILE="generate-prompt-daily.json"
+          fi
+          echo "Using prompt: $PROMPT_FILE"
+          echo "Calling Claude API..."
           HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
-            -d @generate-prompt.json)
+            -d @$PROMPT_FILE)
           echo "HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "API call failed with status $HTTP_CODE"
-            cat response.json | head -c 500
+            head -c 500 response.json
             exit 1
           fi
           python3 << 'PYEOF'
           import json, re
-
           with open('response.json') as f:
             data = json.load(f)
-
           text = ''.join(b.get('text','') for b in data.get('content',[]))
-
-          # Strip code fences and find JSON
           text = re.sub(r'```json\s*', '', text)
           text = re.sub(r'```\s*', '', text)
           first = text.find('{')
           last = text.rfind('}')
-
           if first == -1 or last == -1:
-            print("ERROR: No JSON object found in response")
-            print(f"Response preview: {text[:500]}")
+            print("ERROR: No JSON found")
+            print(f"Preview: {text[:500]}")
             exit(1)
-
-          json_str = text[first:last + 1]
-
           try:
-            parsed = json.loads(json_str)
+            parsed = json.loads(text[first:last+1])
             with open('daily_data.json', 'w') as f:
               json.dump(parsed, f)
             stories = len(parsed.get('todayStories', [])) + len(parsed.get('archiveStories', []))
             charts = len(parsed.get('charts', []))
-            print(f'Success: {stories} stories, {charts} charts generated')
+            print(f'Success: {stories} stories, {charts} charts')
           except json.JSONDecodeError as e:
-            print(f'ERROR: JSON parse failed: {e}')
-            print(f'JSON preview: {json_str[:500]}')
+            print(f'ERROR: {e}')
+            print(f'Preview: {text[first:first+500]}')
             exit(1)
           PYEOF
 
@@ -77,16 +87,16 @@ jobs:
           for i, c in enumerate(data.get('charts', [])):
             items.append({"id": f"chart_{i}", "url": c.get("sourceUrl",""), "headline": c.get("title",""), "source": c.get("sourceText","")})
           req = {
-            "model": "claude-sonnet-4-6",
+            "model": "claude-haiku-4-5-20251001",
             "max_tokens": 4000,
             "tools": [{"type": "web_search_20250305", "name": "web_search"}],
-            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences, no preamble text.",
+            "system": "You verify news dashboard links. For each item, use web search to visit the URL and confirm: (1) the link works, (2) the article matches the headline, (3) the source is not an admissions consultancy firm. Return ONLY a JSON object, no markdown, no code fences, no preamble.",
             "messages": [{"role": "user", "content": "Verify these URLs. Return JSON: {\"remove\": [list of id values to remove], \"fix_urls\": {\"old_url\": \"new_url\"}}. If all pass: {\"remove\":[], \"fix_urls\":{}}.\n\n" + json.dumps(items, indent=2)}]
           }
           with open('verify_request.json', 'w') as f: json.dump(req, f)
-          print(f"Verification request built: {len(items)} items to check")
+          print(f"Verification: {len(items)} items (using Haiku)")
           PYEOF
-          echo "Calling Claude API to verify links..."
+          echo "Calling Claude Haiku for verification..."
           HTTP_CODE=$(curl -s -o verify_response.json -w "%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
@@ -94,7 +104,7 @@ jobs:
             -d @verify_request.json)
           echo "Verify HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "Verification failed with status $HTTP_CODE. Publishing unverified."
+            echo "Verification failed. Publishing unverified."
             echo '{"remove":[],"fix_urls":{}}' > corrections.json
           else
             python3 << 'PYEOF'
@@ -112,7 +122,7 @@ jobs:
               with open('corrections.json','w') as f: json.dump(c, f)
               print(f'Corrections: {c}')
             except:
-              print('Parse failed, skipping corrections')
+              print('Parse failed, skipping')
               with open('corrections.json','w') as f: f.write('{"remove":[],"fix_urls":{}}')
           else:
             with open('corrections.json','w') as f: f.write('{"remove":[],"fix_urls":{}}')
@@ -122,10 +132,17 @@ jobs:
       - name: Apply corrections and build dashboard
         run: |
           python3 << 'PYEOF'
-          import json
+          import json, os
+          from datetime import datetime, timezone, timedelta
 
           with open('daily_data.json') as f: data = json.load(f)
           with open('corrections.json') as f: corr = json.load(f)
+
+          # Override edition date with system clock (Eastern Time)
+          et = timezone(timedelta(hours=-4))
+          now = datetime.now(et)
+          data['edition'] = now.strftime('%B %d, %Y').replace(' 0', ' ')
+          print(f'Edition date: {data["edition"]}')
 
           # Apply URL fixes
           fixes = corr.get('fix_urls', {})
@@ -134,7 +151,7 @@ jobs:
             for old, new in fixes.items():
               if old and new:
                 data_str = data_str.replace(old, new)
-                print(f'Fixed URL: {old} -> {new}')
+                print(f'Fixed: {old} -> {new}')
             data = json.loads(data_str)
 
           # Remove flagged items
@@ -148,15 +165,39 @@ jobs:
               data['charts'] = [c for i, c in enumerate(data.get('charts',[])) if i not in chart_indices]
             print(f'Removed {len(remove_ids)} items')
 
-          # Inject data into template
+          # Monday vs Tue-Fri logic
+          is_monday = now.weekday() == 0
+
+          if is_monday:
+            # Save weekly data for reuse Tue-Fri
+            weekly = {
+              "stats": data.get("stats", []),
+              "keyDates": data.get("keyDates", []),
+              "charts": data.get("charts", [])
+            }
+            with open('weekly_data.json', 'w') as f:
+              json.dump(weekly, f)
+            print(f'Monday: saved weekly data ({len(weekly["charts"])} charts, {len(weekly["keyDates"])} dates, {len(weekly["stats"])} stats)')
+          else:
+            # Merge Monday's weekly data into today's stories
+            if os.path.exists('weekly_data.json'):
+              with open('weekly_data.json') as f:
+                weekly = json.load(f)
+              data['stats'] = weekly.get('stats', [])
+              data['keyDates'] = weekly.get('keyDates', [])
+              data['charts'] = weekly.get('charts', [])
+              print(f'Tue-Fri: merged weekly data ({len(data["charts"])} charts, {len(data["keyDates"])} dates)')
+            else:
+              print('WARNING: No weekly_data.json found. Dashboard may be missing charts/dates.')
+
+          # Inject into template
           with open('template.html') as f: template = f.read()
-          data_json = json.dumps(data)
-          html = template.replace('/*INJECT_DATA*/null', data_json)
+          html = template.replace('/*INJECT_DATA*/null', json.dumps(data))
           with open('index.html', 'w') as f: f.write(html)
 
           stories = len(data.get('todayStories',[])) + len(data.get('archiveStories',[]))
           charts = len(data.get('charts',[]))
-          print(f'Dashboard built: {stories} stories, {charts} charts, {len(html)} chars')
+          print(f'Dashboard: {stories} stories, {charts} charts, {len(html)} chars')
           PYEOF
 
       - name: Publish
@@ -164,4 +205,7 @@ jobs:
           git config user.name 'github-actions'
           git config user.email 'actions@github.com'
           git add index.html
+          if [ -f weekly_data.json ]; then
+            git add weekly_data.json
+          fi
           git diff --cached --quiet || (git commit -m 'Daily brief update' && git push)
