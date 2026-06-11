@@ -33,12 +33,26 @@ jobs:
             PROMPT_FILE="generate-prompt-daily.json"
           fi
           echo "Using prompt: $PROMPT_FILE"
+          # Inject today's date into the prompt so Claude knows the correct year
+          python3 << PYEOF
+          import json
+          from datetime import datetime, timezone, timedelta
+          et = timezone(timedelta(hours=-4))
+          today = datetime.now(et)
+          date_str = today.strftime('%B %d, %Y').replace(' 0', ' ')
+          with open('$PROMPT_FILE') as f: prompt = json.load(f)
+          # Prepend today's date to the user message
+          original_msg = prompt['messages'][0]['content']
+          prompt['messages'][0]['content'] = f"Today's date is {date_str}. All news searches should focus on the past 7 days from this date. Do not search for or include news from {today.year - 1}.\n\n{original_msg}"
+          with open('active_prompt.json', 'w') as f: json.dump(prompt, f)
+          print(f"Date injected: {date_str}")
+          PYEOF
           echo "Calling Claude API..."
           HTTP_CODE=$(curl -s -o response.json -w "%{http_code}" https://api.anthropic.com/v1/messages \
             -H 'Content-Type: application/json' \
             -H 'x-api-key: ${{ secrets.ANTHROPIC_API_KEY }}' \
             -H 'anthropic-version: 2023-06-01' \
-            -d @$PROMPT_FILE)
+            -d @active_prompt.json)
           echo "HTTP Status: $HTTP_CODE"
           if [ "$HTTP_CODE" != "200" ]; then
             echo "API call failed with status $HTTP_CODE"
